@@ -204,12 +204,20 @@ const HS = { fontFamily: "'Oswald', sans-serif", fontWeight: 600, letterSpacing:
 const MS = { fontFamily: "'JetBrains Mono', monospace" };
 
 function RestTimerOverlay({ seconds, onDone, onSkip }) {
+  const endTimeRef = useRef(Date.now() + seconds * 1000);
   const [remaining, setRemaining] = useState(seconds);
   const ref = useRef(null);
   useEffect(() => {
-    setRemaining(seconds);
-    ref.current = setInterval(() => setRemaining(p => { if (p <= 1) { clearInterval(ref.current); try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){} setTimeout(onDone,300); return 0; } return p-1; }), 1000);
-    return () => clearInterval(ref.current);
+    endTimeRef.current = Date.now() + seconds * 1000;
+    const tick = () => {
+      const left = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+      setRemaining(left);
+      if (left <= 0) { clearInterval(ref.current); try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){} setTimeout(onDone,300); }
+    };
+    ref.current = setInterval(tick, 250);
+    const onVisible = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(ref.current); document.removeEventListener("visibilitychange", onVisible); };
   }, [seconds]);
   const pct = ((seconds - remaining) / seconds) * 100;
   return (
