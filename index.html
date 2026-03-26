@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c1525">
+<title>RackItUp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body, #root { height: 100%; background: #0c1525; }
+  body { font-family: 'Source Sans 3', sans-serif; color: #eef0f4; overscroll-behavior: none; }
+  input { font-family: 'JetBrains Mono', monospace; }
+  button { font-family: 'Source Sans 3', sans-serif; -webkit-appearance: none; }
+  ::-webkit-scrollbar { display: none; }
+</style>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// Lucide icons as simple SVG components
+const Icon = ({name, size, color, style}) => {
+  const s = size || 20;
+  const c = color || "currentColor";
+  const icons = {
+    check: <polyline points="20 6 9 17 4 12"/>,
+    undo2: <><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></>,
+    chevronRight: <path d="m9 18 6-6-6-6"/>,
+    chevronLeft: <path d="m15 18-6-6 6-6"/>,
+    dumbbell: <><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></>,
+    sun: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></>,
+    minus: <path d="M5 12h14"/>,
+    plus: <><path d="M5 12h14"/><path d="M12 5v14"/></>,
+    eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+    list: <><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></>,
+    trophy: <><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></>,
+    trendingUp: <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>,
+  };
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>{icons[name]}</svg>
+  );
+};
+
+const DOT = "\u00B7";
+const MULT = "\u00D7";
+const DASH = "\u2014";
+const TICK = "\u2713";
+const RSQUO = "\u2019";
+
+const T = {
+  bg: "#0c1525", card: "#111d30", cardHover: "#162440", border: "#1e3050",
+  accent: "#d4a43a", accentDim: "#b8912f", accentGlow: "rgba(212,164,58,0.15)",
+  green: "#22c55e", greenDim: "#16a34a", greenGlow: "rgba(34,197,94,0.15)",
+  red: "#ef4444", blue: "#5b9cf6", blueGlow: "rgba(91,156,246,0.15)",
+  purple: "#a78bfa",
+  text: "#eef0f4", textDim: "#8a94a6", textMuted: "#4a5568",
+  timerBg: "rgba(8,14,28,0.94)",
+};
+
+const MUSCLE_GROUPS = {
+  chest: { label: "Chest", color: T.accent, icon: "\uD83D\uDCAA" },
+  back: { label: "Back", color: T.blue, icon: "\uD83D\uDCAA" },
+  shoulders: { label: "Shoulders", color: T.purple, icon: "\uD83D\uDCAA" },
+  biceps: { label: "Biceps", color: T.green, icon: "\uD83D\uDCAA" },
+  triceps: { label: "Triceps", color: "#f59e0b", icon: "\uD83D\uDCAA" },
+  legs: { label: "Legs", color: T.red, icon: "\uD83E\uDDB5" },
+  core: { label: "Core", color: "#06b6d4", icon: "\uD83C\uDFAF" },
+  cardio: { label: "Cardio", color: T.green, icon: "\u2764\uFE0F" },
+};
+
+const PHASE1 = {
+  id: "phase1", name: "Phase 1: Pre-Hawaii Sprint", startDate: "2026-03-25", endDate: "2026-04-07", weeks: 2,
+  days: [
+    { id: "day1", dayNumber: 1, weekday: "Wednesday", label: "Upper Push + Core", type: "gym", warmup: "A",
+      exercises: [
+        { id: "d1_bench", name: "Barbell Bench Press", muscle: "chest", sets: 4, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
+        { id: "d1_ohp", name: "Seated DB Overhead Press", muscle: "shoulders", sets: 3, reps: 10, intensity: "RPE 7-8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d1_fly", name: "Cable Fly (low-to-high)", muscle: "chest", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d1_lat", name: "Cable Lateral Raises", muscle: "shoulders", sets: 4, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d1_tri", name: "OH Tricep Extension (cable)", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d1_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "core1" },
+        { id: "d1_wc", name: "Cable Woodchops (each side)", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "core", group: "core1" },
+        { id: "d1_plank", name: "Plank", muscle: "core", sets: 3, reps: "30 sec", intensity: "Braced", restSeconds: 45, type: "timed", section: "core", group: "core1" },
+      ]},
+    { id: "day2", dayNumber: 2, weekday: "Thursday", label: "Lower + Posterior Chain", type: "gym", warmup: "B",
+      exercises: [
+        { id: "d2_trap", name: "Trap Bar Deadlift", muscle: "legs", sets: 4, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
+        { id: "d2_lp", name: "Leg Press", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d2_rdl", name: "Romanian Deadlift", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 7-8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d2_lc", name: "Seated Leg Curl", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d2_cr", name: "Standing Calf Raises", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 45, type: "weighted", section: "main" },
+        { id: "d2_pp", name: "Pallof Press (each side)", muscle: "core", sets: 3, reps: 10, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "core" },
+        { id: "d2_bike", name: "Assault Bike: 5x (30s sprint / 30s rest)", muscle: "cardio", sets: 1, reps: "5 rounds", intensity: "All-out", restSeconds: 0, type: "cardio", section: "conditioning" },
+      ]},
+    { id: "day3", dayNumber: 3, weekday: "Friday", label: "Outdoor Run + Core", type: "outdoor",
+      exercises: [
+        { id: "d3_run", name: "3-Mile Run (conversational pace)", muscle: "cardio", sets: 1, reps: "~25-30 min", intensity: "Easy", restSeconds: 0, type: "cardio", section: "main" },
+        { id: "d3_plank", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "postrun" },
+        { id: "d3_bike_cr", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "postrun" },
+        { id: "d3_db", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "postrun" },
+      ]},
+    { id: "day4", dayNumber: 4, weekday: "Saturday", label: "Upper Pull + Core", type: "gym", warmup: "A",
+      exercises: [
+        { id: "d4_row", name: "Barbell Bent-Over Row", muscle: "back", sets: 4, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
+        { id: "d4_lat", name: "Lat Pulldown", muscle: "back", sets: 3, reps: 10, intensity: "RPE 7-8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d4_cable", name: "Seated Cable Row (close grip)", muscle: "back", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d4_face", name: "Face Pulls", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d4_curl", name: "Barbell Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d4_ham", name: "Hammer Curls", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+        { id: "d4_ab", name: "Ab Wheel Rollouts", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core" },
+      ]},
+    { id: "day5", dayNumber: 5, weekday: "Sunday", label: "Arms & Shoulders + Conditioning", type: "gym", warmup: "A",
+      exercises: [
+        { id: "d5_pp", name: "Push Press", muscle: "shoulders", sets: 3, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
+        { id: "d5_ap", name: "Arnold Press", muscle: "shoulders", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d5_inc", name: "DB Incline Press", muscle: "chest", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+        { id: "d5_ez", name: "EZ Bar Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "ss1" },
+        { id: "d5_skull", name: "Skull Crushers", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main", group: "ss1" },
+        { id: "d5_clr", name: "Cable Lateral Raise", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "ss2" },
+        { id: "d5_chc", name: "Cable Rope Hammer Curl", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "ss2" },
+        { id: "d5_rdf", name: "Rear Delt Fly", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "ss3" },
+        { id: "d5_rpd", name: "Tricep Rope Pushdown", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "ss3" },
+        { id: "d5_cc", name: "Cable Crunches", muscle: "core", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "core" },
+        { id: "d5_fin", name: "Finisher: 3x (200m Row + 10 Push-ups)", muscle: "cardio", sets: 1, reps: "3 rounds", intensity: "Hard", restSeconds: 0, type: "cardio", section: "conditioning" },
+      ]},
+    { id: "day6", dayNumber: 6, weekday: "Monday", label: "Outdoor Intervals + Core", type: "outdoor",
+      exercises: [
+        { id: "d6_run", name: "Interval Run", muscle: "cardio", sets: 1, reps: "~30-35 min", intensity: "8/10 on intervals", restSeconds: 0, type: "cardio", section: "main" },
+        { id: "d6_plank", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "postrun" },
+        { id: "d6_bike_cr", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "postrun" },
+        { id: "d6_db", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "postrun" },
+      ]},
+    { id: "day7", dayNumber: 7, weekday: "Tuesday", label: "Full Body Metabolic", type: "gym", warmup: "B",
+      exercises: [
+        { id: "d7_thrust", name: "DB Thrusters", muscle: "shoulders", sets: 3, reps: 10, intensity: "Moderate", restSeconds: 0, type: "weighted", section: "main", group: "c1" },
+        { id: "d7_ren", name: "Renegade Rows (each arm)", muscle: "back", sets: 3, reps: 8, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "main", group: "c1" },
+        { id: "d7_pec", name: "Pec Deck", muscle: "chest", sets: 3, reps: 12, intensity: "Moderate", restSeconds: 0, type: "weighted", section: "main", group: "c1" },
+        { id: "d7_ab1", name: "Assault Bike", muscle: "cardio", sets: 3, reps: "15 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "c1" },
+        { id: "d7_kbs", name: "Kettlebell Swings", muscle: "legs", sets: 3, reps: 15, intensity: "Hip snap", restSeconds: 0, type: "weighted", section: "main", group: "c2" },
+        { id: "d7_gob", name: "Goblet Squats", muscle: "legs", sets: 3, reps: 10, intensity: "Controlled depth", restSeconds: 0, type: "weighted", section: "main", group: "c2" },
+        { id: "d7_ski", name: "Ski Erg", muscle: "cardio", sets: 3, reps: "15 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "c2" },
+        { id: "d7_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 2, reps: 12, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "main", group: "c3" },
+        { id: "d7_dlr", name: "DB Lateral Raises", muscle: "shoulders", sets: 2, reps: 15, intensity: "Light and strict", restSeconds: 0, type: "weighted", section: "main", group: "c3" },
+        { id: "d7_fw", name: "Farmer\u2019s Walk", muscle: "core", sets: 2, reps: "40 yards", intensity: "Heavy", restSeconds: 0, type: "weighted", section: "main", group: "c3" },
+        { id: "d7_calf", name: "Standing Calf Raises", muscle: "legs", sets: 2, reps: 15, intensity: "Full ROM, pause at top", restSeconds: 45, type: "weighted", section: "main", group: "c3" },
+      ]},
+  ]
+};
+
+const WARMUPS = {
+  A: { title: "Warm-Up A " + DASH + " Upper Body (~8 min)", items: ["Row Machine " + DASH + " 3 min, moderate pace, full ROM", "Band Pull-Aparts " + DASH + " 15 reps", "Band Dislocates " + DASH + " 10 reps", "Scap Push-Ups " + DASH + " 10 reps", "Dead Hangs " + DASH + " 20 sec", "Arm Circles (fwd + back) " + DASH + " 10 each"] },
+  B: { title: "Warm-Up B " + DASH + " Lower / Full Body (~8 min)", items: ["Assault Bike " + DASH + " 3 min, build each minute", "Bodyweight Squats " + DASH + " 10 reps", "Hip 90/90 Switches " + DASH + " 8 each side", "Banded Lateral Walks " + DASH + " 10 each direction", "Leg Swings (F/B + lateral) " + DASH + " 10 each", "Inchworms " + DASH + " 5 reps"] }
+};
+
+const GROUP_LABELS = {
+  ss1: "Superset 1", ss2: "Superset 2", ss3: "Superset 3",
+  c1: "Circuit 1 " + DASH + " 3 Rounds", c2: "Circuit 2 " + DASH + " 3 Rounds", c3: "Circuit 3 " + DASH + " 2 Rounds",
+  core1: "Core Circuit " + DASH + " 3 Rounds", postrun: "Post-Run Core " + DASH + " 2 Rounds"
+};
+
+// localStorage persistence
+const STORAGE_KEY = "workout-logs-v1";
+function loadLogs() { try { const d = localStorage.getItem(STORAGE_KEY); return d ? JSON.parse(d) : {}; } catch(e) { return {}; } }
+function saveLogs(logs) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(logs)); } catch(e) { console.error("Save failed:", e); } }
+
+function getScheduledDay(dateStr) {
+  const start = new Date("2026-03-25"); const d = new Date(dateStr);
+  const diff = Math.floor((d - start) / 86400000);
+  if (diff < 0 || diff >= 14) return null;
+  return (diff % 7) + 1;
+}
+function getTodayStr() { return new Date().toISOString().split("T")[0]; }
+function formatTime(seconds) { return Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0"); }
+
+function buildExerciseHistory(allLogs) {
+  const history = {}; const allEx = {};
+  PHASE1.days.forEach(d => d.exercises.forEach(ex => { allEx[ex.id] = ex; }));
+  Object.entries(allLogs).sort((a, b) => a[0].localeCompare(b[0])).forEach(([logKey, log]) => {
+    const datePart = logKey.split("_")[0];
+    if (!log.exercises) return;
+    Object.entries(log.exercises).forEach(([exId, sets]) => {
+      if (!allEx[exId]) return;
+      if (!history[exId]) history[exId] = [];
+      const done = Object.entries(sets).filter(([_, s]) => s && s.done).map(([idx, s]) => ({ setIndex: Number(idx), weight: s.weight ? Number(s.weight) : null, reps: s.reps ? Number(s.reps) : null, date: datePart }));
+      if (done.length > 0) history[exId].push({ date: datePart, sets: done });
+    });
+  });
+  return history;
+}
+function getLastMaxWeight(h) { if (!h || !h.length) return null; const w = h[h.length-1].sets.filter(s=>s.weight!=null).map(s=>s.weight); return w.length ? Math.max(...w) : null; }
+function getLastSetWeights(h) { if (!h || !h.length) return null; return h[h.length-1].sets.map(s=>s.weight); }
+function getPRWeight(h) { if (!h || !h.length) return null; let m=0; h.forEach(s=>s.sets.forEach(x=>{if(x.weight>m)m=x.weight;})); return m>0?m:null; }
+
+const HS = { fontFamily: "'Oswald', sans-serif", fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase" };
+const MS = { fontFamily: "'JetBrains Mono', monospace" };
+
+function RestTimerOverlay({ seconds, onDone, onSkip }) {
+  const [remaining, setRemaining] = useState(seconds);
+  const ref = useRef(null);
+  useEffect(() => {
+    setRemaining(seconds);
+    ref.current = setInterval(() => setRemaining(p => { if (p <= 1) { clearInterval(ref.current); try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){} setTimeout(onDone,300); return 0; } return p-1; }), 1000);
+    return () => clearInterval(ref.current);
+  }, [seconds]);
+  const pct = ((seconds - remaining) / seconds) * 100;
+  return (
+    <div style={{position:"fixed",inset:0,background:T.timerBg,zIndex:100,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+      <div style={{...HS,fontSize:16,color:T.textDim,marginBottom:12}}>REST</div>
+      <div style={{position:"relative",width:200,height:200,marginBottom:32}}>
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="88" fill="none" stroke={T.border} strokeWidth="6"/>
+          <circle cx="100" cy="100" r="88" fill="none" stroke={T.accent} strokeWidth="6" strokeDasharray={553} strokeDashoffset={553*(1-pct/100)} strokeLinecap="round" transform="rotate(-90 100 100)" style={{transition:"stroke-dashoffset 1s linear"}}/>
+        </svg>
+        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{...MS,fontSize:52,fontWeight:600,color:remaining<=5?T.accent:T.text}}>{formatTime(remaining)}</span>
+        </div>
+      </div>
+      <button onClick={onSkip} style={{background:"none",border:"1px solid "+T.textMuted,color:T.textDim,padding:"10px 32px",borderRadius:8,fontSize:15,cursor:"pointer"}}>Skip</button>
+    </div>
+  );
+}
+
+function NumberInput({value,onChange,placeholder,width,step}){const w=width||72;const s=step||5;return(
+  <div style={{display:"flex",alignItems:"center",gap:4}}>
+    <button onClick={()=>onChange(String(Math.max(0,(Number(value)||0)-s)))} style={{width:28,height:36,background:T.card,border:"1px solid "+T.border,borderRadius:6,color:T.textDim,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="minus" size={14}/></button>
+    <input type="text" inputMode="decimal" value={value||""} placeholder={placeholder} onChange={e=>{onChange(e.target.value.replace(/[^0-9.]/g,""));}} style={{width:w,height:36,background:T.bg,border:"1px solid "+T.border,borderRadius:6,color:T.text,textAlign:"center",fontSize:16,...MS,outline:"none",padding:0}}/>
+    <button onClick={()=>onChange(String((Number(value)||0)+s))} style={{width:28,height:36,background:T.card,border:"1px solid "+T.border,borderRadius:6,color:T.textDim,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="plus" size={14}/></button>
+  </div>
+);}
+
+function RepsInput({value,onChange,target}){return(
+  <div style={{display:"flex",alignItems:"center",gap:4}}>
+    <button onClick={()=>onChange(String(Math.max(0,(Number(value)||0)-1)))} style={{width:28,height:36,background:T.card,border:"1px solid "+T.border,borderRadius:6,color:T.textDim,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="minus" size={14}/></button>
+    <input type="text" inputMode="numeric" pattern="[0-9]*" value={value||""} placeholder={String(target)} onChange={e=>{onChange(e.target.value.replace(/[^0-9]/g,""));}} style={{width:48,height:36,background:T.bg,border:"1px solid "+T.border,borderRadius:6,color:T.text,textAlign:"center",fontSize:16,...MS,outline:"none",padding:0}}/>
+    <button onClick={()=>onChange(String((Number(value)||0)+1))} style={{width:28,height:36,background:T.card,border:"1px solid "+T.border,borderRadius:6,color:T.textDim,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="plus" size={14}/></button>
+  </div>
+);}
+
+function SetRow({setIndex,exercise,logData,onUpdate,onToggleComplete,completed}){
+  const isW=exercise.type==="weighted";const isBw=exercise.type==="bodyweight";const isS=exercise.type==="cardio"||exercise.type==="timed";
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 0",borderBottom:"1px solid "+T.border+"40"}}>
+      <div style={{...MS,fontSize:13,color:T.textMuted,width:24,textAlign:"center"}}>{setIndex+1}</div>
+      {isW&&<><NumberInput value={logData?logData.weight:undefined} onChange={v=>onUpdate({...(logData||{}),weight:v})} placeholder="lbs" width={64}/><span style={{color:T.textMuted,fontSize:13}}>{MULT}</span><RepsInput value={logData?logData.reps:undefined} onChange={v=>onUpdate({...(logData||{}),reps:v})} target={exercise.reps}/></>}
+      {isBw&&<RepsInput value={logData?logData.reps:undefined} onChange={v=>onUpdate({...(logData||{}),reps:v})} target={exercise.reps}/>}
+      {isS&&<div style={{fontSize:14,color:T.textDim,flex:1}}>{typeof exercise.reps==="string"?exercise.reps:exercise.reps+" reps"}</div>}
+      <button onClick={onToggleComplete} style={{marginLeft:"auto",width:36,height:36,borderRadius:8,border:completed?"2px solid "+T.green:"none",cursor:"pointer",background:completed?T.greenGlow:T.accent,display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>
+        {completed?<Icon name="undo2" size={16} color={T.green}/>:<Icon name="check" size={18} color="#fff"/>}
+      </button>
+    </div>
+  );
+}
+
+function ExerciseCard({exercise,logs,onLogUpdate,onToggleSetComplete,isGrouped,isFirstInGroup,isLastInGroup,lastMaxWeight}){
+  const sc={main:T.accent,core:T.purple,conditioning:T.red};const bc=sc[exercise.section]||T.accent;
+  const rl=exercise.restSeconds>=60?(exercise.restSeconds/60)+" min":exercise.restSeconds+"s";
+  return(
+    <div style={{background:T.card,borderRadius:isGrouped?0:12,padding:"14px 16px",borderLeft:isGrouped?"none":"3px solid "+bc,borderTop:isGrouped&&!isFirstInGroup?"1px dashed "+T.border:"none",borderTopLeftRadius:isGrouped&&isFirstInGroup?12:0,borderTopRightRadius:isGrouped&&isFirstInGroup?12:0,borderBottomLeftRadius:isGrouped&&isLastInGroup?12:0,borderBottomRightRadius:isGrouped&&isLastInGroup?12:0}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:15,fontWeight:600,color:T.text,lineHeight:1.3}}>{exercise.name}</div>
+          <div style={{fontSize:12,color:T.textDim,marginTop:2}}>{exercise.sets+MULT+exercise.reps+" "+DOT+" "+exercise.intensity+(exercise.restSeconds>0?" "+DOT+" "+rl+" rest":"")}</div>
+        </div>
+        {lastMaxWeight!=null&&exercise.type==="weighted"&&<div style={{background:T.blueGlow,border:"1px solid "+T.blue+"44",borderRadius:6,padding:"3px 8px",fontSize:11,color:T.blue,fontWeight:600,...MS,whiteSpace:"nowrap",marginLeft:8}}>{"Last: "+lastMaxWeight+" lbs"}</div>}
+      </div>
+      {Array.from({length:exercise.sets}).map((_,i)=><SetRow key={i} setIndex={i} exercise={exercise} logData={logs?logs[i]:undefined} completed={logs&&logs[i]&&logs[i].done} onUpdate={data=>onLogUpdate(exercise.id,i,data)} onToggleComplete={()=>onToggleSetComplete(exercise.id,i)}/>)}
+    </div>
+  );
+}
+
+function WarmupCard({warmupKey,completedItems,onToggle}){
+  const w=WARMUPS[warmupKey];if(!w)return null;
+  return(
+    <div style={{background:T.card,borderRadius:12,padding:"14px 16px",borderLeft:"3px solid "+T.green,marginBottom:12}}>
+      <div style={{...HS,fontSize:14,color:T.green,marginBottom:10}}>{w.title}</div>
+      {w.items.map((item,i)=>(
+        <div key={i} onClick={()=>onToggle(i)} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",cursor:"pointer",borderBottom:i<w.items.length-1?"1px solid "+T.border+"40":"none"}}>
+          <div style={{width:22,height:22,borderRadius:6,border:"2px solid "+(completedItems.includes(i)?T.green:T.textMuted),background:completedItems.includes(i)?T.greenGlow:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            {completedItems.includes(i)&&<Icon name="check" size={13} color={T.green}/>}
+          </div>
+          <span style={{fontSize:14,color:completedItems.includes(i)?T.textMuted:T.textDim,textDecoration:completedItems.includes(i)?"line-through":"none"}}>{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ActiveWorkout({day,onFinish,existingLog,allLogs}){
+  const exH=buildExerciseHistory(allLogs);
+  const buildInit=()=>{
+    const init=existingLog&&existingLog.exercises?JSON.parse(JSON.stringify(existingLog.exercises)):{};
+    day.exercises.forEach(ex=>{
+      if(ex.type==="weighted"&&!init[ex.id]){const lw=getLastSetWeights(exH[ex.id]);if(lw){const s={};for(let i=0;i<ex.sets;i++){const wt=i<lw.length?lw[i]:lw[lw.length-1];s[i]={weight:wt!=null?String(wt):"",reps:"",done:false};}init[ex.id]=s;}}
+    });return init;
+  };
+  const[logs,setLogs]=useState(buildInit);
+  const[warmupDone,setWarmupDone]=useState(existingLog?(existingLog.warmupDone||[]):[]);
+  const[timerActive,setTimerActive]=useState(false);
+  const[timerSeconds,setTimerSeconds]=useState(60);
+  const[elapsed,setElapsed]=useState(0);
+  const[viewMode,setViewMode]=useState("scroll");
+  const[currentExIdx,setCurrentExIdx]=useState(0);
+  const startTime=useRef(existingLog?(existingLog.startedAt||Date.now()):Date.now());
+  useEffect(()=>{const id=setInterval(()=>setElapsed(Math.floor((Date.now()-startTime.current)/1000)),1000);return()=>clearInterval(id);},[]);
+
+  const updateLog=(exId,si,data)=>{setLogs(p=>({...p,[exId]:{...p[exId],[si]:{...(p[exId]?p[exId][si]:{}), ...data}}}));};
+  const toggleSet=(exId,si)=>{
+    const ex=day.exercises.find(e=>e.id===exId);const done=logs[exId]&&logs[exId][si]&&logs[exId][si].done;
+    if(done){setLogs(p=>({...p,[exId]:{...p[exId],[si]:{...(p[exId]?p[exId][si]:{}),done:false,completedAt:null}}}));}
+    else{setLogs(p=>({...p,[exId]:{...p[exId],[si]:{...(p[exId]?p[exId][si]:{}),done:true,completedAt:Date.now()}}}));
+      if(ex&&ex.group){const ge=day.exercises.filter(e=>e.group===ex.group);const last=ge[ge.length-1];if(exId===last.id&&last.restSeconds>0){setTimerSeconds(last.restSeconds);setTimerActive(true);}}
+      else if(ex&&ex.restSeconds>0){setTimerSeconds(ex.restSeconds);setTimerActive(true);}
+    }
+  };
+  const toggleWarmup=(i)=>{setWarmupDone(p=>p.includes(i)?p.filter(x=>x!==i):[...p,i]);};
+  const totalSets=day.exercises.reduce((s,e)=>s+e.sets,0);
+  const doneSets=Object.values(logs).reduce((s,e)=>s+Object.values(e).filter(x=>x&&x.done).length,0);
+  const pct=totalSets>0?Math.round((doneSets/totalSets)*100):0;
+
+  const buildSections=()=>{const sec=[];let cg=null;let buf=[];day.exercises.forEach(ex=>{if(ex.group&&ex.group===cg){buf.push(ex);}else if(ex.group){if(buf.length)sec.push({type:"group",group:cg,exercises:buf});cg=ex.group;buf=[ex];}else{if(buf.length){sec.push({type:"group",group:cg,exercises:buf});buf=[];cg=null;}sec.push({type:"single",exercise:ex});}});if(buf.length)sec.push({type:"group",group:cg,exercises:buf});return sec;};
+  const sections=buildSections();
+  const handleFinish=()=>{onFinish({dayId:day.id,exercises:logs,warmupDone,startedAt:startTime.current,finishedAt:Date.now(),elapsed});};
+
+  return(
+    <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto",paddingBottom:100}}>
+      {timerActive&&<RestTimerOverlay seconds={timerSeconds} onDone={()=>setTimerActive(false)} onSkip={()=>setTimerActive(false)}/>}
+      <div style={{position:"sticky",top:0,zIndex:50,background:T.bg,borderBottom:"1px solid "+T.border,padding:"12px 16px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><div style={{...HS,fontSize:16,color:T.accent}}>{"Day "+day.dayNumber}</div><div style={{fontSize:14,color:T.text,fontWeight:500}}>{day.label}</div></div>
+          <div style={{textAlign:"right"}}><div style={{...MS,fontSize:20,color:T.text}}>{formatTime(elapsed)}</div><div style={{fontSize:12,color:T.textDim}}>{pct+"% complete"}</div></div>
+        </div>
+        <div style={{height:3,background:T.border,borderRadius:2,marginTop:8}}><div style={{height:"100%",background:T.accent,borderRadius:2,width:pct+"%",transition:"width 0.3s ease"}}/></div>
+        <div style={{display:"flex",gap:8,marginTop:8}}>
+          <button onClick={()=>setViewMode("scroll")} style={{flex:1,padding:"6px 0",background:viewMode==="scroll"?T.accentGlow:"transparent",border:"1px solid "+(viewMode==="scroll"?T.accent:T.border),borderRadius:6,color:viewMode==="scroll"?T.accent:T.textDim,fontSize:12,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><Icon name="list" size={13}/> Full View</button>
+          <button onClick={()=>setViewMode("single")} style={{flex:1,padding:"6px 0",background:viewMode==="single"?T.accentGlow:"transparent",border:"1px solid "+(viewMode==="single"?T.accent:T.border),borderRadius:6,color:viewMode==="single"?T.accent:T.textDim,fontSize:12,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><Icon name="eye" size={13}/> Focus View</button>
+        </div>
+      </div>
+      <div style={{padding:"12px 16px"}}>
+        {day.warmup&&<WarmupCard warmupKey={day.warmup} completedItems={warmupDone} onToggle={toggleWarmup}/>}
+        {viewMode==="scroll"?(
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {sections.map((sec,si)=>{
+              if(sec.type==="group")return(<div key={si} style={{borderLeft:"3px solid "+T.accent,borderRadius:12,overflow:"hidden"}}><div style={{background:T.accentGlow,padding:"6px 14px",fontSize:12,color:T.accent,fontWeight:600,...HS}}>{GROUP_LABELS[sec.group]||sec.group}</div>{sec.exercises.map((ex,ei)=><ExerciseCard key={ex.id} exercise={ex} logs={logs[ex.id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} isGrouped isFirstInGroup={ei===0} isLastInGroup={ei===sec.exercises.length-1} lastMaxWeight={getLastMaxWeight(exH[ex.id])}/>)}</div>);
+              return <ExerciseCard key={sec.exercise.id} exercise={sec.exercise} logs={logs[sec.exercise.id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} lastMaxWeight={getLastMaxWeight(exH[sec.exercise.id])}/>;
+            })}
+          </div>
+        ):(
+          <div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <button onClick={()=>setCurrentExIdx(Math.max(0,currentExIdx-1))} disabled={currentExIdx===0} style={{width:40,height:40,borderRadius:8,background:T.card,border:"1px solid "+T.border,color:currentExIdx===0?T.textMuted:T.text,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="chevronLeft" size={20}/></button>
+              <div style={{...MS,fontSize:13,color:T.textDim}}>{(currentExIdx+1)+" / "+day.exercises.length}</div>
+              <button onClick={()=>setCurrentExIdx(Math.min(day.exercises.length-1,currentExIdx+1))} disabled={currentExIdx===day.exercises.length-1} style={{width:40,height:40,borderRadius:8,background:T.card,border:"1px solid "+T.border,color:currentExIdx===day.exercises.length-1?T.textMuted:T.text,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="chevronRight" size={20}/></button>
+            </div>
+            {day.exercises[currentExIdx]&&<ExerciseCard exercise={day.exercises[currentExIdx]} logs={logs[day.exercises[currentExIdx].id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} lastMaxWeight={getLastMaxWeight(exH[day.exercises[currentExIdx].id])}/>}
+          </div>
+        )}
+      </div>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:50}}>
+        <div style={{maxWidth:480,margin:"0 auto",padding:"12px 16px",background:"linear-gradient(transparent, "+T.bg+" 30%)"}}>
+          <button onClick={handleFinish} style={{width:"100%",padding:"14px 0",background:pct===100?T.green:T.accent,border:"none",borderRadius:10,color:"#fff",fontSize:16,fontWeight:600,fontFamily:"'Oswald'",letterSpacing:"0.05em",textTransform:"uppercase",cursor:"pointer"}}>{pct===100?"Complete Workout "+TICK:"Finish Workout ("+pct+"%)"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExerciseHistoryDetail({exerciseId,onBack,allLogs}){
+  const allEx={};PHASE1.days.forEach(d=>d.exercises.forEach(ex=>{allEx[ex.id]=ex;}));const ex=allEx[exerciseId];
+  const history=buildExerciseHistory(allLogs);const exHist=history[exerciseId]||[];const pr=getPRWeight(exHist);
+  return(
+    <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
+      <div style={{padding:"16px",borderBottom:"1px solid "+T.border}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:T.accent,cursor:"pointer",padding:4}}><Icon name="chevronLeft" size={24}/></button>
+          <div><div style={{...HS,fontSize:18,color:T.text}}>{ex?ex.name:""}</div><div style={{fontSize:12,color:T.textDim,textTransform:"capitalize"}}>{ex?(ex.muscle+" "+DOT+" "+ex.sets+MULT+ex.reps+" "+DOT+" "+ex.intensity):""}</div></div>
+        </div>
+      </div>
+      <div style={{padding:16}}>
+        {pr!=null&&<div style={{background:T.accentGlow,border:"1px solid "+T.accent+"44",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}><Icon name="trophy" size={22} color={T.accent}/><div><div style={{fontSize:12,color:T.accent,...HS}}>Personal Record</div><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{pr+" lbs"}</div></div></div>}
+        {exHist.length===0?<div style={{textAlign:"center",padding:"40px 20px",color:T.textDim}}><Icon name="dumbbell" size={32} color={T.textMuted} style={{marginBottom:8,opacity:0.3}}/><div style={{fontSize:15}}>No history yet. Complete a workout to see data here.</div></div>:(
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[...exHist].reverse().map((session,si)=>(
+              <div key={si} style={{background:T.card,borderRadius:10,padding:"12px 16px"}}>
+                <div style={{fontSize:13,color:T.accent,fontWeight:600,marginBottom:8}}>{session.date}</div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{session.sets.map((set,setI)=>(
+                  <div key={setI} style={{background:T.bg,borderRadius:6,padding:"6px 10px",border:"1px solid "+T.border,minWidth:70,textAlign:"center"}}>
+                    <div style={{...MS,fontSize:14,color:T.text}}>{set.weight!=null?(set.weight+" lbs"):"BW"}</div>
+                    <div style={{fontSize:11,color:T.textDim}}>{set.reps!=null?(set.reps+" reps"):DASH}</div>
+                  </div>
+                ))}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MuscleGroupDetail({muscleKey,onBack,onSelectExercise,allLogs}){
+  const mg=MUSCLE_GROUPS[muscleKey];const allEx=[];const seen=new Set();
+  PHASE1.days.forEach(d=>d.exercises.forEach(ex=>{if(ex.muscle===muscleKey&&!seen.has(ex.id)){seen.add(ex.id);allEx.push(ex);}}));
+  const history=buildExerciseHistory(allLogs);
+  return(
+    <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
+      <div style={{padding:"16px",borderBottom:"1px solid "+T.border}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:T.accent,cursor:"pointer",padding:4}}><Icon name="chevronLeft" size={24}/></button>
+          <div style={{...HS,fontSize:22,color:T.text}}>{mg?mg.label:""}</div>
+        </div>
+      </div>
+      <div style={{padding:16}}>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {allEx.map(ex=>{const eh=history[ex.id]||[];const lm=getLastMaxWeight(eh);const pr=getPRWeight(eh);const s=eh.length;return(
+            <div key={ex.id} onClick={()=>onSelectExercise(ex.id)} style={{background:T.card,borderRadius:10,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,border:"1px solid "+T.border}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:15,fontWeight:600,color:T.text}}>{ex.name}</div>
+                <div style={{fontSize:12,color:T.textDim,marginTop:2}}>{ex.sets+MULT+ex.reps+" "+DOT+" "+ex.intensity}</div>
+                <div style={{fontSize:12,color:T.textMuted,marginTop:2}}>{s>0?(s+" session"+(s>1?"s":"")+" logged"):"No history yet"}{lm!=null?(" "+DOT+" Last: "+lm+" lbs"):""}{pr!=null?(" "+DOT+" PR: "+pr+" lbs"):""}</div>
+              </div>
+              <Icon name="chevronRight" size={18} color={T.textMuted}/>
+            </div>
+          );})}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HistoryScreen({allLogs,onBack}){
+  const[sm,setSm]=useState(null);const[se,setSe]=useState(null);
+  if(se)return <ExerciseHistoryDetail exerciseId={se} onBack={()=>setSe(null)} allLogs={allLogs}/>;
+  if(sm)return <MuscleGroupDetail muscleKey={sm} onBack={()=>setSm(null)} onSelectExercise={setSe} allLogs={allLogs}/>;
+  const history=buildExerciseHistory(allLogs);const ms={};
+  Object.keys(MUSCLE_GROUPS).forEach(mk=>{const ex=new Set();PHASE1.days.forEach(d=>d.exercises.forEach(e=>{if(e.muscle===mk)ex.add(e.id);}));const lc=[...ex].filter(id=>history[id]&&history[id].length>0).length;ms[mk]={total:ex.size,logged:lc};});
+  return(
+    <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
+      <div style={{padding:"16px",borderBottom:"1px solid "+T.border}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:T.accent,cursor:"pointer",padding:4}}><Icon name="chevronLeft" size={24}/></button>
+          <div style={{...HS,fontSize:22,color:T.text}}>Progress</div>
+        </div>
+      </div>
+      <div style={{padding:16}}>
+        <div style={{...HS,fontSize:13,color:T.textDim,marginBottom:10}}>MUSCLE GROUPS</div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {Object.entries(MUSCLE_GROUPS).map(([key,mg])=>{const st=ms[key];return(
+            <div key={key} onClick={()=>setSm(key)} style={{background:T.card,borderRadius:12,padding:"16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,border:"1px solid "+T.border}}>
+              <div style={{width:44,height:44,borderRadius:10,background:mg.color+"18",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{mg.icon}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:16,fontWeight:600,color:T.text}}>{mg.label}</div>
+                <div style={{fontSize:12,color:T.textDim}}>{st.total+" exercise"+(st.total!==1?"s":"")+(st.logged>0?" "+DOT+" "+st.logged+" with history":"")}</div>
+              </div>
+              <Icon name="chevronRight" size={18} color={T.textMuted}/>
+            </div>
+          );})}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomeScreen({onStartDay,onViewHistory,logs}){
+  const today=getTodayStr();const todayDayNum=getScheduledDay(today);const ck=Object.keys(logs);
+  const start=new Date("2026-03-25");const now=new Date(today);const dss=Math.floor((now-start)/86400000);const cw=dss>=7?2:1;
+  return(
+    <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
+      <div style={{padding:"20px 16px 16px",background:"linear-gradient(180deg, "+T.accent+"11, transparent)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{...HS,fontSize:24,color:T.accent,letterSpacing:"0.04em"}}>RACK</span><span style={{...HS,fontSize:24,color:T.text,letterSpacing:"0.04em"}}>IT</span><span style={{...HS,fontSize:24,color:T.accent,letterSpacing:"0.04em"}}>UP</span></div>
+        <div style={{...HS,fontSize:13,color:T.accent,marginBottom:2}}>CURRENT PROGRAM</div>
+        <div style={{...HS,fontSize:26,color:T.text,lineHeight:1.2}}>{PHASE1.name}</div>
+        <div style={{fontSize:13,color:T.textDim,marginTop:4}}>{"March 25 "+DASH+" April 7 "+DOT+" Week "+cw+" of 2"}</div>
+        <div style={{display:"flex",gap:12,marginTop:14}}>
+          <div style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center"}}><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{ck.length}</div><div style={{fontSize:11,color:T.textDim}}>Workouts Done</div></div>
+          <div style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center"}}><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{14-ck.length}</div><div style={{fontSize:11,color:T.textDim}}>Remaining</div></div>
+          <button onClick={onViewHistory} style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center",cursor:"pointer",color:T.text}}><Icon name="trendingUp" size={20} style={{margin:"0 auto 2px",display:"block",opacity:0.8}}/><div style={{fontSize:11,color:T.textDim}}>Progress</div></button>
+        </div>
+      </div>
+      <div style={{padding:"8px 16px 24px"}}>
+        <div style={{...HS,fontSize:13,color:T.textDim,marginBottom:10}}>THIS WEEK</div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {PHASE1.days.map(day=>{
+            const isToday=day.dayNumber===todayDayNum;const wo=(cw-1)*7;const dd=new Date(start);dd.setDate(dd.getDate()+wo+day.dayNumber-1);const ds=dd.toISOString().split("T")[0];
+            const lk=ck.find(k=>k.startsWith(ds)&&logs[k]&&logs[k].dayId===day.id);const done=!!lk;
+            return(
+              <div key={day.id} onClick={()=>onStartDay(day)} style={{background:isToday?T.accentGlow:T.card,border:"1px solid "+(isToday?T.accent+"66":T.border),borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,transition:"all 0.15s"}}>
+                <div style={{width:42,height:42,borderRadius:10,background:done?T.greenGlow:(day.type==="outdoor"?T.green+"15":T.accent+"15"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  {done?<Icon name="check" size={20} color={T.green}/>:(day.type==="outdoor"?<Icon name="sun" size={20} color={T.green}/>:<Icon name="dumbbell" size={20} color={T.accent}/>)}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:15,fontWeight:600,color:T.text}}>{day.label}</span>
+                    {isToday&&<span style={{fontSize:10,background:T.accent,color:"#fff",padding:"1px 6px",borderRadius:4,fontWeight:600,...HS}}>TODAY</span>}
+                  </div>
+                  <div style={{fontSize:12,color:T.textDim}}>{day.weekday+" "+DOT+" Day "+day.dayNumber+" "+DOT+" "+(day.type==="outdoor"?"Outdoor":("Gym "+DOT+" "+day.exercises.length+" exercises"))}</div>
+                </div>
+                <Icon name="chevronRight" size={18} color={T.textMuted}/>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const[screen,setScreen]=useState("home");const[activeDay,setActiveDay]=useState(null);const[allLogs,setAllLogs]=useState(loadLogs());
+  const startDay=(day)=>{setActiveDay(day);setScreen("workout");};
+  const finishWorkout=(logData)=>{const key=getTodayStr()+"_"+logData.dayId;const updated={...allLogs,[key]:logData};setAllLogs(updated);saveLogs(updated);setScreen("home");setActiveDay(null);};
+  if(screen==="workout"&&activeDay)return <ActiveWorkout day={activeDay} onFinish={finishWorkout} existingLog={allLogs[getTodayStr()+"_"+activeDay.id]} allLogs={allLogs}/>;
+  if(screen==="history")return <HistoryScreen allLogs={allLogs} onBack={()=>setScreen("home")}/>;
+  return <HomeScreen onStartDay={startDay} onViewHistory={()=>setScreen("history")} logs={allLogs}/>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
