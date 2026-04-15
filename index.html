@@ -27,7 +27,6 @@
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
 
-// Lucide icons as simple SVG components
 const Icon = ({name, size, color, style}) => {
   const s = size || 20;
   const c = color || "currentColor";
@@ -44,6 +43,7 @@ const Icon = ({name, size, color, style}) => {
     list: <><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></>,
     trophy: <><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></>,
     trendingUp: <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>,
+    target: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
   };
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>{icons[name]}</svg>
@@ -54,7 +54,6 @@ const DOT = "\u00B7";
 const MULT = "\u00D7";
 const DASH = "\u2014";
 const TICK = "\u2713";
-const RSQUO = "\u2019";
 
 const T = {
   bg: "#0c1525", card: "#111d30", cardHover: "#162440", border: "#1e3050",
@@ -64,6 +63,7 @@ const T = {
   purple: "#a78bfa",
   text: "#eef0f4", textDim: "#8a94a6", textMuted: "#4a5568",
   timerBg: "rgba(8,14,28,0.94)",
+  orange: "#f97316", orangeGlow: "rgba(249,115,22,0.15)",
 };
 
 const MUSCLE_GROUPS = {
@@ -77,84 +77,237 @@ const MUSCLE_GROUPS = {
   cardio: { label: "Cardio", color: T.green, icon: "\u2764\uFE0F" },
 };
 
-const PHASE1 = {
-  id: "phase1", name: "Phase 1: Pre-Hawaii Sprint", startDate: "2026-03-25", endDate: "2026-04-07", weeks: 2,
-  days: [
-    { id: "day1", dayNumber: 1, weekday: "Wednesday", label: "Upper Push + Core", type: "gym", warmup: "A",
-      exercises: [
-        { id: "d1_bench", name: "Barbell Bench Press", muscle: "chest", sets: 4, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
-        { id: "d1_ohp", name: "Seated DB Overhead Press", muscle: "shoulders", sets: 3, reps: 10, intensity: "RPE 7-8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d1_fly", name: "Cable Fly (low-to-high)", muscle: "chest", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d1_lat", name: "Cable Lateral Raises", muscle: "shoulders", sets: 4, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d1_tri", name: "OH Tricep Extension (cable)", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d1_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "core1" },
-        { id: "d1_wc", name: "Cable Woodchops (each side)", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "core", group: "core1" },
-        { id: "d1_plank", name: "Plank", muscle: "core", sets: 3, reps: "30 sec", intensity: "Braced", restSeconds: 45, type: "timed", section: "core", group: "core1" },
-      ]},
-    { id: "day2", dayNumber: 2, weekday: "Thursday", label: "Lower + Posterior Chain", type: "gym", warmup: "B",
-      exercises: [
-        { id: "d2_trap", name: "Trap Bar Deadlift", muscle: "legs", sets: 4, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
-        { id: "d2_lp", name: "Leg Press", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d2_rdl", name: "Romanian Deadlift", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 7-8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d2_lc", name: "Seated Leg Curl", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d2_cr", name: "Standing Calf Raises", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 45, type: "weighted", section: "main" },
-        { id: "d2_pp", name: "Pallof Press (each side)", muscle: "core", sets: 3, reps: 10, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "core" },
-        { id: "d2_bike", name: "Assault Bike: 5x (30s sprint / 30s rest)", muscle: "cardio", sets: 1, reps: "5 rounds", intensity: "All-out", restSeconds: 0, type: "cardio", section: "conditioning" },
-      ]},
-    { id: "day3", dayNumber: 3, weekday: "Friday", label: "Outdoor Run + Core", type: "outdoor",
-      exercises: [
-        { id: "d3_run", name: "3-Mile Run (conversational pace)", muscle: "cardio", sets: 1, reps: "~25-30 min", intensity: "Easy", restSeconds: 0, type: "cardio", section: "main" },
-        { id: "d3_plank", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "postrun" },
-        { id: "d3_bike_cr", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "postrun" },
-        { id: "d3_db", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "postrun" },
-      ]},
-    { id: "day4", dayNumber: 4, weekday: "Saturday", label: "Upper Pull + Core", type: "gym", warmup: "A",
-      exercises: [
-        { id: "d4_row", name: "Barbell Bent-Over Row", muscle: "back", sets: 4, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
-        { id: "d4_lat", name: "Lat Pulldown", muscle: "back", sets: 3, reps: 10, intensity: "RPE 7-8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d4_cable", name: "Seated Cable Row (close grip)", muscle: "back", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d4_face", name: "Face Pulls", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d4_curl", name: "Barbell Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d4_ham", name: "Hammer Curls", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
-        { id: "d4_ab", name: "Ab Wheel Rollouts", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core" },
-      ]},
-    { id: "day5", dayNumber: 5, weekday: "Sunday", label: "Arms & Shoulders + Conditioning", type: "gym", warmup: "A",
-      exercises: [
-        { id: "d5_pp", name: "Push Press", muscle: "shoulders", sets: 3, reps: 8, intensity: "RPE 7-8", restSeconds: 120, type: "weighted", section: "main" },
-        { id: "d5_ap", name: "Arnold Press", muscle: "shoulders", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d5_inc", name: "DB Incline Press", muscle: "chest", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
-        { id: "d5_ez", name: "EZ Bar Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "ss1" },
-        { id: "d5_skull", name: "Skull Crushers", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main", group: "ss1" },
-        { id: "d5_clr", name: "Cable Lateral Raise", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "ss2" },
-        { id: "d5_chc", name: "Cable Rope Hammer Curl", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "ss2" },
-        { id: "d5_rdf", name: "Rear Delt Fly", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "ss3" },
-        { id: "d5_rpd", name: "Tricep Rope Pushdown", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "ss3" },
-        { id: "d5_cc", name: "Cable Crunches", muscle: "core", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "core" },
-        { id: "d5_fin", name: "Finisher: 3x (200m Row + 10 Push-ups)", muscle: "cardio", sets: 1, reps: "3 rounds", intensity: "Hard", restSeconds: 0, type: "cardio", section: "conditioning" },
-      ]},
-    { id: "day6", dayNumber: 6, weekday: "Monday", label: "Outdoor Intervals + Core", type: "outdoor",
-      exercises: [
-        { id: "d6_run", name: "Interval Run", muscle: "cardio", sets: 1, reps: "~30-35 min", intensity: "8/10 on intervals", restSeconds: 0, type: "cardio", section: "main" },
-        { id: "d6_plank", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "postrun" },
-        { id: "d6_bike_cr", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "postrun" },
-        { id: "d6_db", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "postrun" },
-      ]},
-    { id: "day7", dayNumber: 7, weekday: "Tuesday", label: "Full Body Metabolic", type: "gym", warmup: "B",
-      exercises: [
-        { id: "d7_thrust", name: "DB Thrusters", muscle: "shoulders", sets: 3, reps: 10, intensity: "Moderate", restSeconds: 0, type: "weighted", section: "main", group: "c1" },
-        { id: "d7_ren", name: "Renegade Rows (each arm)", muscle: "back", sets: 3, reps: 8, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "main", group: "c1" },
-        { id: "d7_pec", name: "Pec Deck", muscle: "chest", sets: 3, reps: 12, intensity: "Moderate", restSeconds: 0, type: "weighted", section: "main", group: "c1" },
-        { id: "d7_ab1", name: "Assault Bike", muscle: "cardio", sets: 3, reps: "15 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "c1" },
-        { id: "d7_kbs", name: "Kettlebell Swings", muscle: "legs", sets: 3, reps: 15, intensity: "Hip snap", restSeconds: 0, type: "weighted", section: "main", group: "c2" },
-        { id: "d7_gob", name: "Goblet Squats", muscle: "legs", sets: 3, reps: 10, intensity: "Controlled depth", restSeconds: 0, type: "weighted", section: "main", group: "c2" },
-        { id: "d7_ski", name: "Ski Erg", muscle: "cardio", sets: 3, reps: "15 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "c2" },
-        { id: "d7_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 2, reps: 12, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "main", group: "c3" },
-        { id: "d7_dlr", name: "DB Lateral Raises", muscle: "shoulders", sets: 2, reps: 15, intensity: "Light and strict", restSeconds: 0, type: "weighted", section: "main", group: "c3" },
-        { id: "d7_fw", name: "Farmer\u2019s Walk", muscle: "core", sets: 2, reps: "40 yards", intensity: "Heavy", restSeconds: 0, type: "weighted", section: "main", group: "c3" },
-        { id: "d7_calf", name: "Standing Calf Raises", muscle: "legs", sets: 2, reps: 15, intensity: "Full ROM, pause at top", restSeconds: 45, type: "weighted", section: "main", group: "c3" },
-      ]},
+// ============================================================
+// PHASE 3: THE MAIN BUILD — April 15 – June 22, 2026
+// ============================================================
+// The program is structured as weekly blocks, each containing 7 days (Sun-Sat).
+// The mini-block (Apr 15-18) is a partial week.
+// Weeks are anchored to Sunday.
+
+const PROGRAM = {
+  id: "phase3",
+  name: "Phase 3: The Main Build",
+  startDate: "2026-04-15",
+  endDate: "2026-06-22",
+  blocks: [
+    { id: "mini", name: "Mini-Block: Max Testing", startDate: "2026-04-15", endDate: "2026-04-18", weekLabel: "Mini" },
+    { id: "a1", name: "Block A: Hypertrophy Base", startDate: "2026-04-19", endDate: "2026-04-26", weekLabel: "A \u2014 Wk 1" },
+    { id: "a2", name: "Block A: Hypertrophy Base", startDate: "2026-04-27", endDate: "2026-05-03", weekLabel: "A \u2014 Wk 2" },
+    { id: "a3", name: "Block A: Hypertrophy Base", startDate: "2026-05-04", endDate: "2026-05-10", weekLabel: "A \u2014 Wk 3" },
+    { id: "a4", name: "Block A: Hypertrophy Base", startDate: "2026-05-11", endDate: "2026-05-17", weekLabel: "A \u2014 Wk 4" },
+    { id: "dl", name: "Deload", startDate: "2026-05-18", endDate: "2026-05-24", weekLabel: "Deload" },
+    { id: "b1", name: "Block B: Strength & Detail", startDate: "2026-05-25", endDate: "2026-05-31", weekLabel: "B \u2014 Wk 1" },
+    { id: "b2", name: "Block B: Strength & Detail", startDate: "2026-06-01", endDate: "2026-06-07", weekLabel: "B \u2014 Wk 2" },
+    { id: "b3", name: "Block B: Strength & Detail", startDate: "2026-06-08", endDate: "2026-06-14", weekLabel: "B \u2014 Wk 3" },
+    { id: "tp", name: "Taper", startDate: "2026-06-15", endDate: "2026-06-22", weekLabel: "Taper" },
   ]
 };
+
+// ============================================================
+// MINI-BLOCK DAYS (Wed Apr 15 – Sat Apr 18)
+// ============================================================
+const MINI_DAYS = [
+  { id: "mini_d1", dayNumber: 1, weekday: "Wednesday", date: "2026-04-15", label: "Bench Press Max", type: "gym", warmup: "A",
+    exercises: [
+      { id: "mini_bench", name: "Barbell Bench Press \u2014 Work to 1RM", muscle: "chest", sets: 6, reps: "see protocol", intensity: "Max", restSeconds: 240, type: "weighted", section: "main" },
+      { id: "mini_inc", name: "Incline DB Press", muscle: "chest", sets: 3, reps: 10, intensity: "RPE 6\u20137", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "mini_fly", name: "Cable Fly (low-to-high)", muscle: "chest", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "mini_lat", name: "Cable Lateral Raises", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "mini_tri", name: "Tricep Rope Pushdown", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "mini_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "mini_core1" },
+      { id: "mini_plank", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Braced", restSeconds: 45, type: "timed", section: "core", group: "mini_core1" },
+    ]},
+  { id: "mini_d2", dayNumber: 2, weekday: "Thursday", date: "2026-04-16", label: "Outdoor: Easy Run (Legs Fresh)", type: "outdoor",
+    exercises: [
+      { id: "mini_run", name: "Easy Run (2\u20132.5 miles)", muscle: "cardio", sets: 1, reps: "~20\u201325 min", intensity: "Conversational", restSeconds: 0, type: "cardio", section: "main" },
+      { id: "mini_plk2", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "mini_postrun" },
+      { id: "mini_bc", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "mini_postrun" },
+      { id: "mini_db", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "mini_postrun" },
+    ]},
+  { id: "mini_d3", dayNumber: 3, weekday: "Friday", date: "2026-04-17", label: "Squat & Trap Bar Deadlift Max", type: "gym", warmup: "B",
+    exercises: [
+      { id: "mini_squat", name: "Barbell Back Squat \u2014 Work to 1RM", muscle: "legs", sets: 6, reps: "see protocol", intensity: "Max", restSeconds: 300, type: "weighted", section: "main" },
+      { id: "mini_trap", name: "Trap Bar Deadlift \u2014 Work to 1RM", muscle: "legs", sets: 6, reps: "see protocol", intensity: "Max", restSeconds: 300, type: "weighted", section: "main" },
+      { id: "mini_lp", name: "Leg Press", muscle: "legs", sets: 2, reps: 12, intensity: "RPE 6", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "mini_lc", name: "Seated Leg Curl", muscle: "legs", sets: 2, reps: 15, intensity: "RPE 6", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "mini_calf", name: "Standing Calf Raises", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 45, type: "weighted", section: "main" },
+      { id: "mini_pp", name: "Pallof Press (each side)", muscle: "core", sets: 2, reps: 10, intensity: "RPE 6", restSeconds: 60, type: "weighted", section: "core" },
+    ]},
+  { id: "mini_d4", dayNumber: 4, weekday: "Saturday", date: "2026-04-18", label: "Upper Pull + Arms & Shoulders", type: "gym", warmup: "A",
+    exercises: [
+      { id: "mini_row", name: "Barbell Bent-Over Row", muscle: "back", sets: 4, reps: 8, intensity: "RPE 7", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "mini_lpd", name: "Lat Pulldown", muscle: "back", sets: 3, reps: 10, intensity: "RPE 7", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "mini_cr", name: "Seated Cable Row (close grip)", muscle: "back", sets: 3, reps: 12, intensity: "RPE 7", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "mini_fp", name: "Face Pulls", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "mini_ez", name: "EZ Bar Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 7", restSeconds: 0, type: "weighted", section: "main", group: "mini_ss1" },
+      { id: "mini_skull", name: "Skull Crushers", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 7", restSeconds: 90, type: "weighted", section: "main", group: "mini_ss1" },
+      { id: "mini_ham", name: "Hammer Curls", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 0, type: "weighted", section: "main", group: "mini_ss2" },
+      { id: "mini_oht", name: "OH Tricep Extension (cable)", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main", group: "mini_ss2" },
+      { id: "mini_aw", name: "Ab Wheel Rollouts", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core" },
+    ]},
+];
+
+// ============================================================
+// BLOCK A TEMPLATE (Weeks 1-4) — Hypertrophy Base
+// ============================================================
+const BLOCK_A_DAYS = [
+  { id: "a_d1", dayNumber: 1, weekday: "Sunday", label: "Arms & Shoulders + Conditioning", type: "gym", warmup: "A",
+    exercises: [
+      { id: "a_pp", name: "Push Press", muscle: "shoulders", sets: 3, reps: 8, intensity: "RPE 7\u20138", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "a_arn", name: "Arnold Press", muscle: "shoulders", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "a_incc", name: "DB Incline Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "a_ez", name: "EZ Bar Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "a_ss1" },
+      { id: "a_skull", name: "Skull Crushers", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main", group: "a_ss1" },
+      { id: "a_clr", name: "Cable Lateral Raise", muscle: "shoulders", sets: 4, reps: 15, intensity: "RPE 8\u20139", restSeconds: 0, type: "weighted", section: "main", group: "a_ss2" },
+      { id: "a_chc", name: "Cable Rope Hammer Curl", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "a_ss2" },
+      { id: "a_rdf", name: "Rear Delt Fly (cable)", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "a_ss3" },
+      { id: "a_rpd", name: "Tricep Rope Pushdown", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "a_ss3" },
+      { id: "a_cc", name: "Cable Crunches", muscle: "core", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "core" },
+      { id: "a_fin1", name: "Finisher: 3x (200m Row + 10 Push-ups)", muscle: "cardio", sets: 1, reps: "3 rounds", intensity: "Hard", restSeconds: 0, type: "cardio", section: "conditioning" },
+    ]},
+  { id: "a_d2", dayNumber: 2, weekday: "Monday", label: "Full Body Metabolic", type: "gym", warmup: "B",
+    exercises: [
+      { id: "a_thrust", name: "DB Thrusters", muscle: "shoulders", sets: 3, reps: 10, intensity: "Moderate", restSeconds: 0, type: "weighted", section: "main", group: "a_c1" },
+      { id: "a_ren", name: "Renegade Rows (each arm)", muscle: "back", sets: 3, reps: 8, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "main", group: "a_c1" },
+      { id: "a_pec", name: "Pec Deck", muscle: "chest", sets: 3, reps: 12, intensity: "Moderate", restSeconds: 0, type: "weighted", section: "main", group: "a_c1" },
+      { id: "a_ab1", name: "Assault Bike", muscle: "cardio", sets: 3, reps: "15 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "a_c1" },
+      { id: "a_kbs", name: "Kettlebell Swings", muscle: "legs", sets: 3, reps: 15, intensity: "Hip snap", restSeconds: 0, type: "weighted", section: "main", group: "a_c2" },
+      { id: "a_gob", name: "Goblet Squats", muscle: "legs", sets: 3, reps: 10, intensity: "Controlled depth", restSeconds: 0, type: "weighted", section: "main", group: "a_c2" },
+      { id: "a_ski", name: "Ski Erg", muscle: "cardio", sets: 3, reps: "15 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "a_c2" },
+      { id: "a_hlr2", name: "Hanging Leg Raises", muscle: "core", sets: 2, reps: 12, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "main", group: "a_c3" },
+      { id: "a_dlr", name: "DB Lateral Raises", muscle: "shoulders", sets: 2, reps: 15, intensity: "Light and strict", restSeconds: 0, type: "weighted", section: "main", group: "a_c3" },
+      { id: "a_fw", name: "Farmer\u2019s Walk", muscle: "core", sets: 2, reps: "40 yards", intensity: "Heavy", restSeconds: 0, type: "weighted", section: "main", group: "a_c3" },
+      { id: "a_calf2", name: "Standing Calf Raises", muscle: "legs", sets: 2, reps: 15, intensity: "Full ROM, pause top", restSeconds: 45, type: "weighted", section: "main", group: "a_c3" },
+    ]},
+  { id: "a_d3", dayNumber: 3, weekday: "Tuesday", label: "Outdoor: Steady-State Run + Core", type: "outdoor",
+    exercises: [
+      { id: "a_run", name: "3-Mile Run (conversational pace)", muscle: "cardio", sets: 1, reps: "~25\u201330 min", intensity: "Easy", restSeconds: 0, type: "cardio", section: "main" },
+      { id: "a_plk", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "a_postrun" },
+      { id: "a_bc", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "a_postrun" },
+      { id: "a_db", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "a_postrun" },
+    ]},
+  { id: "a_d4", dayNumber: 4, weekday: "Wednesday", label: "Upper Push + Core", type: "gym", warmup: "A",
+    exercises: [
+      { id: "a_bench", name: "Barbell Bench Press", muscle: "chest", sets: 4, reps: 8, intensity: "RPE 7\u20138", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "a_ohp", name: "Seated DB Overhead Press", muscle: "shoulders", sets: 3, reps: 10, intensity: "RPE 7\u20138", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "a_fly", name: "Cable Fly (low-to-high)", muscle: "chest", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "a_lat", name: "Cable Lateral Raises", muscle: "shoulders", sets: 4, reps: 15, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "a_tri", name: "OH Tricep Extension (cable)", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "a_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "a_core1" },
+      { id: "a_wc", name: "Cable Woodchops (each side)", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "core", group: "a_core1" },
+      { id: "a_plank", name: "Plank", muscle: "core", sets: 3, reps: "30 sec", intensity: "Braced", restSeconds: 45, type: "timed", section: "core", group: "a_core1" },
+    ]},
+  { id: "a_d5", dayNumber: 5, weekday: "Thursday", label: "Outdoor: Intervals + Core", type: "outdoor",
+    exercises: [
+      { id: "a_intv", name: "Interval Run", muscle: "cardio", sets: 1, reps: "~30\u201335 min", intensity: "8/10 on intervals", restSeconds: 0, type: "cardio", section: "main" },
+      { id: "a_plk2", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "a_postrun2" },
+      { id: "a_bc2", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "a_postrun2" },
+      { id: "a_db2", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "a_postrun2" },
+    ]},
+  { id: "a_d6", dayNumber: 6, weekday: "Friday", label: "Lower + Posterior Chain", type: "gym", warmup: "B",
+    exercises: [
+      { id: "a_trap", name: "Trap Bar Deadlift", muscle: "legs", sets: 4, reps: 8, intensity: "RPE 7\u20138", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "a_lp", name: "Leg Press", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "a_rdl", name: "Romanian Deadlift", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 7\u20138", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "a_lc", name: "Seated Leg Curl", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "a_calf", name: "Standing Calf Raises", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 45, type: "weighted", section: "main" },
+      { id: "a_pall", name: "Pallof Press (each side)", muscle: "core", sets: 3, reps: 10, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "core" },
+      { id: "a_bike", name: "Assault Bike: 5x (30s sprint / 30s rest)", muscle: "cardio", sets: 1, reps: "5 rounds", intensity: "All-out", restSeconds: 0, type: "cardio", section: "conditioning" },
+    ]},
+  { id: "a_d7", dayNumber: 7, weekday: "Saturday", label: "Upper Pull + Arms", type: "gym", warmup: "A",
+    exercises: [
+      { id: "a_row", name: "Barbell Bent-Over Row", muscle: "back", sets: 4, reps: 8, intensity: "RPE 7\u20138", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "a_lpd", name: "Lat Pulldown", muscle: "back", sets: 3, reps: 10, intensity: "RPE 7\u20138", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "a_scr", name: "Seated Cable Row (close grip)", muscle: "back", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "a_fp", name: "Face Pulls", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 7", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "a_bcurl", name: "Barbell Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "a_armss1" },
+      { id: "a_cgbp", name: "Close-Grip Bench Press", muscle: "triceps", sets: 3, reps: 10, intensity: "RPE 7\u20138", restSeconds: 90, type: "weighted", section: "main", group: "a_armss1" },
+      { id: "a_ham", name: "Hammer Curls", muscle: "biceps", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "a_armss2" },
+      { id: "a_dips", name: "Tricep Dips (machine)", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "main", group: "a_armss2" },
+      { id: "a_aw", name: "Ab Wheel Rollouts", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core" },
+    ]},
+];
+
+// ============================================================
+// BLOCK B TEMPLATE (Weeks 6-8) — Strength & Detail
+// ============================================================
+const BLOCK_B_DAYS = [
+  { id: "b_d1", dayNumber: 1, weekday: "Sunday", label: "Arms & Shoulders + Conditioning", type: "gym", warmup: "A",
+    exercises: [
+      { id: "b_ohp", name: "Strict Overhead Press", muscle: "shoulders", sets: 4, reps: 6, intensity: "RPE 8\u20139", restSeconds: 150, type: "weighted", section: "main" },
+      { id: "b_arn", name: "Arnold Press", muscle: "shoulders", sets: 3, reps: 10, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "b_incc", name: "Incline DB Curl", muscle: "biceps", sets: 3, reps: 10, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_preach", name: "Preacher Curl (EZ bar)", muscle: "biceps", sets: 3, reps: 10, intensity: "RPE 8\u20139", restSeconds: 0, type: "weighted", section: "main", group: "b_ss1" },
+      { id: "b_ohte", name: "OH Tricep Extension (EZ bar)", muscle: "triceps", sets: 3, reps: 10, intensity: "RPE 8\u20139", restSeconds: 90, type: "weighted", section: "main", group: "b_ss1" },
+      { id: "b_clr", name: "Cable Lateral Raise", muscle: "shoulders", sets: 4, reps: 12, intensity: "RPE 9", restSeconds: 0, type: "weighted", section: "main", group: "b_ss2" },
+      { id: "b_bay", name: "Cable Bayesian Curl", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main", group: "b_ss2" },
+      { id: "b_rdf", name: "Rear Delt Fly (cable)", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 0, type: "weighted", section: "main", group: "b_ss3" },
+      { id: "b_kick", name: "Tricep Kickbacks (cable)", muscle: "triceps", sets: 3, reps: 15, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main", group: "b_ss3" },
+      { id: "b_cc", name: "Cable Crunches", muscle: "core", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 60, type: "weighted", section: "core" },
+      { id: "b_fin1", name: "Finisher: 4x (250m Row + 8 Burpees)", muscle: "cardio", sets: 1, reps: "4 rounds", intensity: "Hard", restSeconds: 0, type: "cardio", section: "conditioning" },
+    ]},
+  { id: "b_d2", dayNumber: 2, weekday: "Monday", label: "Full Body Metabolic", type: "gym", warmup: "B",
+    exercises: [
+      { id: "b_dcp", name: "DB Clean & Press", muscle: "shoulders", sets: 3, reps: 8, intensity: "Explosive", restSeconds: 0, type: "weighted", section: "main", group: "b_c1" },
+      { id: "b_csr", name: "Chest-Supported Row", muscle: "back", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "main", group: "b_c1" },
+      { id: "b_cross", name: "Cable Crossover", muscle: "chest", sets: 3, reps: 12, intensity: "Squeeze at peak", restSeconds: 0, type: "weighted", section: "main", group: "b_c1" },
+      { id: "b_ab1", name: "Assault Bike", muscle: "cardio", sets: 3, reps: "18 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "b_c1" },
+      { id: "b_kbs", name: "Kettlebell Swings", muscle: "legs", sets: 3, reps: 15, intensity: "Hip snap", restSeconds: 0, type: "weighted", section: "main", group: "b_c2" },
+      { id: "b_ssbg", name: "SSB Goblet Squats", muscle: "legs", sets: 3, reps: 10, intensity: "Controlled depth", restSeconds: 0, type: "weighted", section: "main", group: "b_c2" },
+      { id: "b_ski", name: "Ski Erg", muscle: "cardio", sets: 3, reps: "18 cal", intensity: "Hard", restSeconds: 45, type: "cardio", section: "main", group: "b_c2" },
+      { id: "b_hlr2", name: "Hanging Leg Raises", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "main", group: "b_c3" },
+      { id: "b_dlr", name: "DB Lateral Raises", muscle: "shoulders", sets: 2, reps: 15, intensity: "Light and strict", restSeconds: 0, type: "weighted", section: "main", group: "b_c3" },
+      { id: "b_fw", name: "Farmer\u2019s Walk", muscle: "core", sets: 2, reps: "50 yards", intensity: "Heavy", restSeconds: 0, type: "weighted", section: "main", group: "b_c3" },
+      { id: "b_calf2", name: "Standing Calf Raises", muscle: "legs", sets: 2, reps: 15, intensity: "Full ROM, pause top", restSeconds: 45, type: "weighted", section: "main", group: "b_c3" },
+    ]},
+  { id: "b_d3", dayNumber: 3, weekday: "Tuesday", label: "Outdoor: Steady-State Run + Core", type: "outdoor",
+    exercises: [
+      { id: "b_run", name: "3-Mile Run (conversational pace)", muscle: "cardio", sets: 1, reps: "~25\u201330 min", intensity: "Easy", restSeconds: 0, type: "cardio", section: "main" },
+      { id: "b_plk", name: "Plank", muscle: "core", sets: 2, reps: "30 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "b_postrun" },
+      { id: "b_bc", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 15, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "b_postrun" },
+      { id: "b_dbs", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 10, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "b_postrun" },
+    ]},
+  { id: "b_d4", dayNumber: 4, weekday: "Wednesday", label: "Upper Push + Core", type: "gym", warmup: "A",
+    exercises: [
+      { id: "b_bench", name: "Barbell Bench Press", muscle: "chest", sets: 4, reps: 6, intensity: "RPE 8\u20139", restSeconds: 150, type: "weighted", section: "main" },
+      { id: "b_incbb", name: "Incline Barbell Press", muscle: "chest", sets: 3, reps: 8, intensity: "RPE 8", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "b_fly", name: "Cable Fly (high-to-low)", muscle: "chest", sets: 3, reps: 12, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_lat", name: "Cable Lateral Raises", muscle: "shoulders", sets: 4, reps: 12, intensity: "RPE 9", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_vbar", name: "Close-Grip Pushdowns (V-bar)", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_hlr", name: "Hanging Leg Raises", muscle: "core", sets: 3, reps: 12, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "b_core1" },
+      { id: "b_wc", name: "Cable Woodchops (each side)", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 0, type: "weighted", section: "core", group: "b_core1" },
+      { id: "b_awc", name: "Ab Wheel Rollouts", muscle: "core", sets: 3, reps: 10, intensity: "Controlled", restSeconds: 45, type: "bodyweight", section: "core", group: "b_core1" },
+    ]},
+  { id: "b_d5", dayNumber: 5, weekday: "Thursday", label: "Outdoor: Intervals + Core", type: "outdoor",
+    exercises: [
+      { id: "b_intv", name: "Interval Run (5x2min hard / 90s jog)", muscle: "cardio", sets: 1, reps: "~35 min", intensity: "8/10 on intervals", restSeconds: 0, type: "cardio", section: "main" },
+      { id: "b_plk2", name: "Plank", muscle: "core", sets: 2, reps: "45 sec", intensity: "Controlled", restSeconds: 0, type: "timed", section: "core", group: "b_postrun2" },
+      { id: "b_bc2", name: "Bicycle Crunches (each side)", muscle: "core", sets: 2, reps: 20, intensity: "Controlled", restSeconds: 0, type: "bodyweight", section: "core", group: "b_postrun2" },
+      { id: "b_db2", name: "Dead Bugs (each side)", muscle: "core", sets: 2, reps: 12, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core", group: "b_postrun2" },
+    ]},
+  { id: "b_d6", dayNumber: 6, weekday: "Friday", label: "Lower + Posterior Chain", type: "gym", warmup: "B",
+    exercises: [
+      { id: "b_trap", name: "Trap Bar Deadlift", muscle: "legs", sets: 4, reps: 6, intensity: "RPE 8\u20139", restSeconds: 150, type: "weighted", section: "main" },
+      { id: "b_ssb", name: "SSB Squat", muscle: "legs", sets: 3, reps: 8, intensity: "RPE 8", restSeconds: 120, type: "weighted", section: "main" },
+      { id: "b_rdl", name: "Romanian Deadlift", muscle: "legs", sets: 3, reps: 10, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "b_lc", name: "Seated Leg Curl", muscle: "legs", sets: 3, reps: 12, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_calf", name: "Standing Calf Raises", muscle: "legs", sets: 3, reps: 15, intensity: "RPE 8", restSeconds: 45, type: "weighted", section: "main" },
+      { id: "b_pall", name: "Pallof Press (each side)", muscle: "core", sets: 3, reps: 10, intensity: "RPE 7\u20138", restSeconds: 60, type: "weighted", section: "core" },
+      { id: "b_bike", name: "Assault Bike: 6x (30s sprint / 30s rest)", muscle: "cardio", sets: 1, reps: "6 rounds", intensity: "All-out", restSeconds: 0, type: "cardio", section: "conditioning" },
+    ]},
+  { id: "b_d7", dayNumber: 7, weekday: "Saturday", label: "Upper Pull + Arms", type: "gym", warmup: "A",
+    exercises: [
+      { id: "b_row", name: "Barbell Bent-Over Row", muscle: "back", sets: 4, reps: 6, intensity: "RPE 8\u20139", restSeconds: 150, type: "weighted", section: "main" },
+      { id: "b_lpd", name: "Lat Pulldown (wide grip)", muscle: "back", sets: 3, reps: 8, intensity: "RPE 8", restSeconds: 90, type: "weighted", section: "main" },
+      { id: "b_mead", name: "Meadows Row (each arm)", muscle: "back", sets: 3, reps: 10, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_fp", name: "Face Pulls", muscle: "shoulders", sets: 3, reps: 15, intensity: "RPE 7\u20138", restSeconds: 60, type: "weighted", section: "main" },
+      { id: "b_bcurl", name: "Barbell Curl", muscle: "biceps", sets: 3, reps: 10, intensity: "RPE 8\u20139", restSeconds: 0, type: "weighted", section: "main", group: "b_armss1" },
+      { id: "b_cgbp", name: "Close-Grip Bench Press", muscle: "triceps", sets: 3, reps: 8, intensity: "RPE 8\u20139", restSeconds: 90, type: "weighted", section: "main", group: "b_armss1" },
+      { id: "b_spider", name: "Spider Curls (EZ bar)", muscle: "biceps", sets: 3, reps: 12, intensity: "RPE 9", restSeconds: 0, type: "weighted", section: "main", group: "b_armss2" },
+      { id: "b_ohtc", name: "OH Tricep Extension (cable)", muscle: "triceps", sets: 3, reps: 12, intensity: "RPE 8\u20139", restSeconds: 60, type: "weighted", section: "main", group: "b_armss2" },
+      { id: "b_aw", name: "Ab Wheel Rollouts", muscle: "core", sets: 3, reps: 12, intensity: "Controlled", restSeconds: 60, type: "bodyweight", section: "core" },
+    ]},
+];
 
 const WARMUPS = {
   A: { title: "Warm-Up A " + DASH + " Upper Body (~8 min)", items: ["Row Machine " + DASH + " 3 min, moderate pace, full ROM", "Band Pull-Aparts " + DASH + " 15 reps", "Band Dislocates " + DASH + " 10 reps", "Scap Push-Ups " + DASH + " 10 reps", "Dead Hangs " + DASH + " 20 sec", "Arm Circles (fwd + back) " + DASH + " 10 each"] },
@@ -162,40 +315,130 @@ const WARMUPS = {
 };
 
 const GROUP_LABELS = {
-  ss1: "Superset 1", ss2: "Superset 2", ss3: "Superset 3",
-  c1: "Circuit 1 " + DASH + " 3 Rounds", c2: "Circuit 2 " + DASH + " 3 Rounds", c3: "Circuit 3 " + DASH + " 2 Rounds",
-  core1: "Core Circuit " + DASH + " 3 Rounds", postrun: "Post-Run Core " + DASH + " 2 Rounds"
+  // Mini-block
+  mini_core1: "Core Circuit " + DASH + " 2 Rounds",
+  mini_postrun: "Post-Run Core " + DASH + " 2 Rounds",
+  mini_ss1: "Superset 1", mini_ss2: "Superset 2",
+  // Block A
+  a_ss1: "Superset 1", a_ss2: "Superset 2", a_ss3: "Superset 3",
+  a_c1: "Circuit 1 " + DASH + " 3 Rounds", a_c2: "Circuit 2 " + DASH + " 3 Rounds", a_c3: "Circuit 3 " + DASH + " 2 Rounds",
+  a_core1: "Core Circuit " + DASH + " 3 Rounds", a_postrun: "Post-Run Core " + DASH + " 2 Rounds", a_postrun2: "Post-Run Core " + DASH + " 2 Rounds",
+  a_armss1: "Arms Superset 1", a_armss2: "Arms Superset 2",
+  // Block B
+  b_ss1: "Superset 1", b_ss2: "Superset 2", b_ss3: "Superset 3",
+  b_c1: "Circuit 1 " + DASH + " 3 Rounds", b_c2: "Circuit 2 " + DASH + " 3 Rounds", b_c3: "Circuit 3 " + DASH + " 2 Rounds",
+  b_core1: "Core Circuit " + DASH + " 3 Rounds", b_postrun: "Post-Run Core " + DASH + " 2 Rounds", b_postrun2: "Post-Run Core " + DASH + " 2 Rounds",
+  b_armss1: "Arms Superset 1", b_armss2: "Arms Superset 2",
 };
 
+// ============================================================
+// SCHEDULE BUILDER — maps dates to days
+// ============================================================
+function getSchedule() {
+  const schedule = [];
+  // Mini-block: Apr 15-18 (Wed-Sat)
+  MINI_DAYS.forEach(d => schedule.push({ ...d, blockId: "mini", blockLabel: "Mini-Block: Max Testing" }));
+
+  // Block A weeks: Apr 20-26, Apr 27-May 3, May 4-10, May 11-17
+  const aWeekStarts = ["2026-04-19", "2026-04-26", "2026-05-03", "2026-05-10"];
+  aWeekStarts.forEach((ws, wi) => {
+    const start = new Date(ws + "T12:00:00");
+    BLOCK_A_DAYS.forEach(day => {
+      const d = new Date(start);
+      d.setDate(d.getDate() + day.dayNumber - 1);
+      const dateStr = d.toISOString().split("T")[0];
+      // Skip Apr 19 (Saturday before week 1 starts on Sunday Apr 20)
+      if (dateStr < "2026-04-20" || dateStr > "2026-05-17") return;
+      schedule.push({ ...day, id: day.id + "_w" + (wi+1), date: dateStr, blockId: PROGRAM.blocks[wi+1].id, blockLabel: "Block A: Wk " + (wi+1) });
+    });
+  });
+
+  // Deload: May 18-24 — same days as Block A but with "dl_" prefix and deload flag
+  const dlStart = new Date("2026-05-17T12:00:00");
+  BLOCK_A_DAYS.forEach(day => {
+    const d = new Date(dlStart);
+    d.setDate(d.getDate() + day.dayNumber - 1);
+    const dateStr = d.toISOString().split("T")[0];
+    if (dateStr < "2026-05-18" || dateStr > "2026-05-24") return;
+    schedule.push({ ...day, id: "dl_" + day.id, date: dateStr, blockId: "dl", blockLabel: "Deload", isDeload: true });
+  });
+
+  // Block B weeks: May 25-31, Jun 1-7, Jun 8-14
+  const bWeekStarts = ["2026-05-24", "2026-05-31", "2026-06-07"];
+  bWeekStarts.forEach((ws, wi) => {
+    const start = new Date(ws + "T12:00:00");
+    BLOCK_B_DAYS.forEach(day => {
+      const d = new Date(start);
+      d.setDate(d.getDate() + day.dayNumber - 1);
+      const dateStr = d.toISOString().split("T")[0];
+      if (dateStr < "2026-05-25" || dateStr > "2026-06-14") return;
+      schedule.push({ ...day, id: day.id + "_w" + (wi+1), date: dateStr, blockId: PROGRAM.blocks[wi+6].id, blockLabel: "Block B: Wk " + (wi+1) });
+    });
+  });
+
+  // Taper: Jun 15-22 — same days as Block B with taper flag
+  const tpStart = new Date("2026-06-14T12:00:00");
+  BLOCK_B_DAYS.forEach(day => {
+    const d = new Date(tpStart);
+    d.setDate(d.getDate() + day.dayNumber - 1);
+    const dateStr = d.toISOString().split("T")[0];
+    if (dateStr < "2026-06-15" || dateStr > "2026-06-22") return;
+    schedule.push({ ...day, id: "tp_" + day.id, date: dateStr, blockId: "tp", blockLabel: "Taper", isTaper: true });
+  });
+
+  return schedule;
+}
+
+const FULL_SCHEDULE = getSchedule();
+
 // localStorage persistence
-const STORAGE_KEY = "workout-logs-v1";
+const STORAGE_KEY = "workout-logs-v3";
 function loadLogs() { try { const d = localStorage.getItem(STORAGE_KEY); return d ? JSON.parse(d) : {}; } catch(e) { return {}; } }
 function saveLogs(logs) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(logs)); } catch(e) { console.error("Save failed:", e); } }
 
-function getScheduledDay(dateStr) {
-  const start = new Date("2026-03-25"); const d = new Date(dateStr);
-  const diff = Math.floor((d - start) / 86400000);
-  if (diff < 0 || diff >= 14) return null;
-  return (diff % 7) + 1;
+function localDate() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
 }
-function getTodayStr() { return new Date().toISOString().split("T")[0]; }
+
 function formatTime(seconds) { return Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0"); }
 
+function getCurrentWeekDays() {
+  const today = localDate();
+  // Find which block/week we're in
+  const todayEntry = FULL_SCHEDULE.find(d => d.date === today);
+  if (todayEntry) {
+    // Return all days with the same blockId
+    return FULL_SCHEDULE.filter(d => d.blockId === todayEntry.blockId);
+  }
+  // If today isn't on the schedule, find the nearest upcoming block
+  const future = FULL_SCHEDULE.filter(d => d.date >= today);
+  if (future.length > 0) {
+    return FULL_SCHEDULE.filter(d => d.blockId === future[0].blockId);
+  }
+  // Fallback: show the last block
+  const last = FULL_SCHEDULE[FULL_SCHEDULE.length - 1];
+  return FULL_SCHEDULE.filter(d => d.blockId === last.blockId);
+}
+
 function buildExerciseHistory(allLogs) {
-  const history = {}; const allEx = {};
-  PHASE1.days.forEach(d => d.exercises.forEach(ex => { allEx[ex.id] = ex; }));
+  const history = {};
+  const allEx = {};
+  FULL_SCHEDULE.forEach(d => d.exercises.forEach(ex => { allEx[ex.id] = ex; }));
   Object.entries(allLogs).sort((a, b) => a[0].localeCompare(b[0])).forEach(([logKey, log]) => {
     const datePart = logKey.split("_")[0];
     if (!log.exercises) return;
     Object.entries(log.exercises).forEach(([exId, sets]) => {
-      if (!allEx[exId]) return;
-      if (!history[exId]) history[exId] = [];
+      // Match on exercise base id (strip week suffix for history matching)
+      const baseId = exId.replace(/_w\d+$/, "");
+      if (!history[baseId]) history[baseId] = [];
       const done = Object.entries(sets).filter(([_, s]) => s && s.done).map(([idx, s]) => ({ setIndex: Number(idx), weight: s.weight ? Number(s.weight) : null, reps: s.reps ? Number(s.reps) : null, date: datePart }));
-      if (done.length > 0) history[exId].push({ date: datePart, sets: done });
+      if (done.length > 0) history[baseId].push({ date: datePart, sets: done });
     });
   });
   return history;
 }
+
 function getLastMaxWeight(h) { if (!h || !h.length) return null; const w = h[h.length-1].sets.filter(s=>s.weight!=null).map(s=>s.weight); return w.length ? Math.max(...w) : null; }
 function getLastSetWeights(h) { if (!h || !h.length) return null; return h[h.length-1].sets.map(s=>s.weight); }
 function getPRWeight(h) { if (!h || !h.length) return null; let m=0; h.forEach(s=>s.sets.forEach(x=>{if(x.weight>m)m=x.weight;})); return m>0?m:null; }
@@ -307,7 +550,8 @@ function ActiveWorkout({day,onFinish,existingLog,allLogs}){
   const buildInit=()=>{
     const init=existingLog&&existingLog.exercises?JSON.parse(JSON.stringify(existingLog.exercises)):{};
     day.exercises.forEach(ex=>{
-      if(ex.type==="weighted"&&!init[ex.id]){const lw=getLastSetWeights(exH[ex.id]);if(lw){const s={};for(let i=0;i<ex.sets;i++){const wt=i<lw.length?lw[i]:lw[lw.length-1];s[i]={weight:wt!=null?String(wt):"",reps:"",done:false};}init[ex.id]=s;}}
+      const baseId=ex.id.replace(/_w\d+$/,"");
+      if(ex.type==="weighted"&&!init[ex.id]){const lw=getLastSetWeights(exH[baseId]);if(lw){const s={};for(let i=0;i<ex.sets;i++){const wt=i<lw.length?lw[i]:lw[lw.length-1];s[i]={weight:wt!=null?String(wt):"",reps:"",done:false};}init[ex.id]=s;}}
     });return init;
   };
   const[logs,setLogs]=useState(buildInit);
@@ -338,15 +582,21 @@ function ActiveWorkout({day,onFinish,existingLog,allLogs}){
   const sections=buildSections();
   const handleFinish=()=>{onFinish({dayId:day.id,exercises:logs,warmupDone,startedAt:startTime.current,finishedAt:Date.now(),elapsed});};
 
+  const blockColor = day.isDeload ? T.blue : day.isTaper ? T.purple : T.accent;
+
   return(
     <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto",paddingBottom:100}}>
       {timerActive&&<RestTimerOverlay seconds={timerSeconds} onDone={()=>setTimerActive(false)} onSkip={()=>setTimerActive(false)}/>}
       <div style={{position:"sticky",top:0,zIndex:50,background:T.bg,borderBottom:"1px solid "+T.border,padding:"12px 16px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><div style={{...HS,fontSize:16,color:T.accent}}>{"Day "+day.dayNumber}</div><div style={{fontSize:14,color:T.text,fontWeight:500}}>{day.label}</div></div>
+          <div>
+            {(day.isDeload||day.isTaper)&&<div style={{fontSize:10,fontWeight:700,...HS,color:day.isDeload?T.blue:T.purple,marginBottom:2}}>{day.isDeload?"DELOAD":"TAPER"}</div>}
+            <div style={{...HS,fontSize:16,color:blockColor}}>{day.label}</div>
+            <div style={{fontSize:12,color:T.textDim}}>{day.date+" "+DOT+" "+day.weekday}</div>
+          </div>
           <div style={{textAlign:"right"}}><div style={{...MS,fontSize:20,color:T.text}}>{formatTime(elapsed)}</div><div style={{fontSize:12,color:T.textDim}}>{pct+"% complete"}</div></div>
         </div>
-        <div style={{height:3,background:T.border,borderRadius:2,marginTop:8}}><div style={{height:"100%",background:T.accent,borderRadius:2,width:pct+"%",transition:"width 0.3s ease"}}/></div>
+        <div style={{height:3,background:T.border,borderRadius:2,marginTop:8}}><div style={{height:"100%",background:blockColor,borderRadius:2,width:pct+"%",transition:"width 0.3s ease"}}/></div>
         <div style={{display:"flex",gap:8,marginTop:8}}>
           <button onClick={()=>setViewMode("scroll")} style={{flex:1,padding:"6px 0",background:viewMode==="scroll"?T.accentGlow:"transparent",border:"1px solid "+(viewMode==="scroll"?T.accent:T.border),borderRadius:6,color:viewMode==="scroll"?T.accent:T.textDim,fontSize:12,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><Icon name="list" size={13}/> Full View</button>
           <button onClick={()=>setViewMode("single")} style={{flex:1,padding:"6px 0",background:viewMode==="single"?T.accentGlow:"transparent",border:"1px solid "+(viewMode==="single"?T.accent:T.border),borderRadius:6,color:viewMode==="single"?T.accent:T.textDim,fontSize:12,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><Icon name="eye" size={13}/> Focus View</button>
@@ -357,8 +607,8 @@ function ActiveWorkout({day,onFinish,existingLog,allLogs}){
         {viewMode==="scroll"?(
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {sections.map((sec,si)=>{
-              if(sec.type==="group")return(<div key={si} style={{borderLeft:"3px solid "+T.accent,borderRadius:12,overflow:"hidden"}}><div style={{background:T.accentGlow,padding:"6px 14px",fontSize:12,color:T.accent,fontWeight:600,...HS}}>{GROUP_LABELS[sec.group]||sec.group}</div>{sec.exercises.map((ex,ei)=><ExerciseCard key={ex.id} exercise={ex} logs={logs[ex.id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} isGrouped isFirstInGroup={ei===0} isLastInGroup={ei===sec.exercises.length-1} lastMaxWeight={getLastMaxWeight(exH[ex.id])}/>)}</div>);
-              return <ExerciseCard key={sec.exercise.id} exercise={sec.exercise} logs={logs[sec.exercise.id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} lastMaxWeight={getLastMaxWeight(exH[sec.exercise.id])}/>;
+              if(sec.type==="group")return(<div key={si} style={{borderLeft:"3px solid "+blockColor,borderRadius:12,overflow:"hidden"}}><div style={{background:blockColor+"22",padding:"6px 14px",fontSize:12,color:blockColor,fontWeight:600,...HS}}>{GROUP_LABELS[sec.group]||sec.group}</div>{sec.exercises.map((ex,ei)=><ExerciseCard key={ex.id} exercise={ex} logs={logs[ex.id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} isGrouped isFirstInGroup={ei===0} isLastInGroup={ei===sec.exercises.length-1} lastMaxWeight={getLastMaxWeight(exH[ex.id.replace(/_w\d+$/,"")])}/>)}</div>);
+              return <ExerciseCard key={sec.exercise.id} exercise={sec.exercise} logs={logs[sec.exercise.id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} lastMaxWeight={getLastMaxWeight(exH[sec.exercise.id.replace(/_w\d+$/,"")])}/>;
             })}
           </div>
         ):(
@@ -368,13 +618,13 @@ function ActiveWorkout({day,onFinish,existingLog,allLogs}){
               <div style={{...MS,fontSize:13,color:T.textDim}}>{(currentExIdx+1)+" / "+day.exercises.length}</div>
               <button onClick={()=>setCurrentExIdx(Math.min(day.exercises.length-1,currentExIdx+1))} disabled={currentExIdx===day.exercises.length-1} style={{width:40,height:40,borderRadius:8,background:T.card,border:"1px solid "+T.border,color:currentExIdx===day.exercises.length-1?T.textMuted:T.text,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="chevronRight" size={20}/></button>
             </div>
-            {day.exercises[currentExIdx]&&<ExerciseCard exercise={day.exercises[currentExIdx]} logs={logs[day.exercises[currentExIdx].id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} lastMaxWeight={getLastMaxWeight(exH[day.exercises[currentExIdx].id])}/>}
+            {day.exercises[currentExIdx]&&<ExerciseCard exercise={day.exercises[currentExIdx]} logs={logs[day.exercises[currentExIdx].id]} onLogUpdate={updateLog} onToggleSetComplete={toggleSet} lastMaxWeight={getLastMaxWeight(exH[day.exercises[currentExIdx].id.replace(/_w\d+$/,"")])}/>}
           </div>
         )}
       </div>
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:50}}>
         <div style={{maxWidth:480,margin:"0 auto",padding:"12px 16px",background:"linear-gradient(transparent, "+T.bg+" 30%)"}}>
-          <button onClick={handleFinish} style={{width:"100%",padding:"14px 0",background:pct===100?T.green:T.accent,border:"none",borderRadius:10,color:"#fff",fontSize:16,fontWeight:600,fontFamily:"'Oswald'",letterSpacing:"0.05em",textTransform:"uppercase",cursor:"pointer"}}>{pct===100?"Complete Workout "+TICK:"Finish Workout ("+pct+"%)"}</button>
+          <button onClick={handleFinish} style={{width:"100%",padding:"14px 0",background:pct===100?T.green:blockColor,border:"none",borderRadius:10,color:"#fff",fontSize:16,fontWeight:600,fontFamily:"'Oswald'",letterSpacing:"0.05em",textTransform:"uppercase",cursor:"pointer"}}>{pct===100?"Complete Workout "+TICK:"Finish Workout ("+pct+"%)"}</button>
         </div>
       </div>
     </div>
@@ -382,7 +632,9 @@ function ActiveWorkout({day,onFinish,existingLog,allLogs}){
 }
 
 function ExerciseHistoryDetail({exerciseId,onBack,allLogs}){
-  const allEx={};PHASE1.days.forEach(d=>d.exercises.forEach(ex=>{allEx[ex.id]=ex;}));const ex=allEx[exerciseId];
+  const allEx={};
+  FULL_SCHEDULE.forEach(d=>d.exercises.forEach(ex=>{const baseId=ex.id.replace(/_w\d+$/,"");if(!allEx[baseId])allEx[baseId]=ex;}));
+  const ex=allEx[exerciseId];
   const history=buildExerciseHistory(allLogs);const exHist=history[exerciseId]||[];const pr=getPRWeight(exHist);
   return(
     <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
@@ -416,7 +668,7 @@ function ExerciseHistoryDetail({exerciseId,onBack,allLogs}){
 
 function MuscleGroupDetail({muscleKey,onBack,onSelectExercise,allLogs}){
   const mg=MUSCLE_GROUPS[muscleKey];const allEx=[];const seen=new Set();
-  PHASE1.days.forEach(d=>d.exercises.forEach(ex=>{if(ex.muscle===muscleKey&&!seen.has(ex.id)){seen.add(ex.id);allEx.push(ex);}}));
+  FULL_SCHEDULE.forEach(d=>d.exercises.forEach(ex=>{const baseId=ex.id.replace(/_w\d+$/,"");if(ex.muscle===muscleKey&&!seen.has(baseId)){seen.add(baseId);allEx.push({...ex,id:baseId});}}));
   const history=buildExerciseHistory(allLogs);
   return(
     <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
@@ -449,7 +701,7 @@ function HistoryScreen({allLogs,onBack}){
   if(se)return <ExerciseHistoryDetail exerciseId={se} onBack={()=>setSe(null)} allLogs={allLogs}/>;
   if(sm)return <MuscleGroupDetail muscleKey={sm} onBack={()=>setSm(null)} onSelectExercise={setSe} allLogs={allLogs}/>;
   const history=buildExerciseHistory(allLogs);const ms={};
-  Object.keys(MUSCLE_GROUPS).forEach(mk=>{const ex=new Set();PHASE1.days.forEach(d=>d.exercises.forEach(e=>{if(e.muscle===mk)ex.add(e.id);}));const lc=[...ex].filter(id=>history[id]&&history[id].length>0).length;ms[mk]={total:ex.size,logged:lc};});
+  Object.keys(MUSCLE_GROUPS).forEach(mk=>{const ex=new Set();FULL_SCHEDULE.forEach(d=>d.exercises.forEach(e=>{const baseId=e.id.replace(/_w\d+$/,"");if(e.muscle===mk)ex.add(baseId);}));const lc=[...ex].filter(id=>history[id]&&history[id].length>0).length;ms[mk]={total:ex.size,logged:lc};});
   return(
     <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
       <div style={{padding:"16px",borderBottom:"1px solid "+T.border}}>
@@ -478,38 +730,52 @@ function HistoryScreen({allLogs,onBack}){
 }
 
 function HomeScreen({onStartDay,onViewHistory,logs}){
-  const today=getTodayStr();const todayDayNum=getScheduledDay(today);const ck=Object.keys(logs);
-  const start=new Date("2026-03-25");const now=new Date(today);const dss=Math.floor((now-start)/86400000);const cw=dss>=7?2:1;
+  const today = localDate();
+  const weekDays = getCurrentWeekDays();
+  const blockLabel = weekDays.length > 0 ? weekDays[0].blockLabel : "";
+  const blockId = weekDays.length > 0 ? weekDays[0].blockId : "";
+  const block = PROGRAM.blocks.find(b => b.id === blockId);
+
+  // Count total and completed
+  const totalDays = FULL_SCHEDULE.length;
+  const completedDays = Object.keys(logs).length;
+
+  // Block-specific color
+  const blockColor = blockId === "dl" ? T.blue : blockId === "tp" ? T.purple : blockId === "mini" ? T.orange : T.accent;
+
   return(
     <div style={{fontFamily:"'Source Sans 3', sans-serif",background:T.bg,color:T.text,minHeight:"100vh",maxWidth:480,margin:"0 auto"}}>
-      <div style={{padding:"20px 16px 16px",background:"linear-gradient(180deg, "+T.accent+"11, transparent)"}}>
+      <div style={{padding:"20px 16px 16px",background:"linear-gradient(180deg, "+blockColor+"11, transparent)"}}>
         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{...HS,fontSize:24,color:T.accent,letterSpacing:"0.04em"}}>RACK</span><span style={{...HS,fontSize:24,color:T.text,letterSpacing:"0.04em"}}>IT</span><span style={{...HS,fontSize:24,color:T.accent,letterSpacing:"0.04em"}}>UP</span></div>
-        <div style={{...HS,fontSize:13,color:T.accent,marginBottom:2}}>CURRENT PROGRAM</div>
-        <div style={{...HS,fontSize:26,color:T.text,lineHeight:1.2}}>{PHASE1.name}</div>
-        <div style={{fontSize:13,color:T.textDim,marginTop:4}}>{"March 25 "+DASH+" April 7 "+DOT+" Week "+cw+" of 2"}</div>
+        <div style={{...HS,fontSize:13,color:blockColor,marginBottom:2}}>CURRENT PROGRAM</div>
+        <div style={{...HS,fontSize:26,color:T.text,lineHeight:1.2}}>{PROGRAM.name}</div>
+        <div style={{fontSize:13,color:T.textDim,marginTop:4}}>{"Apr 15 "+DASH+" Jun 22 "+DOT+" "+blockLabel}</div>
+        {block&&<div style={{display:"inline-block",marginTop:6,background:blockColor+"22",border:"1px solid "+blockColor+"44",borderRadius:6,padding:"2px 10px",fontSize:12,color:blockColor,fontWeight:600,...HS}}>{block.weekLabel}</div>}
         <div style={{display:"flex",gap:12,marginTop:14}}>
-          <div style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center"}}><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{ck.length}</div><div style={{fontSize:11,color:T.textDim}}>Workouts Done</div></div>
-          <div style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center"}}><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{14-ck.length}</div><div style={{fontSize:11,color:T.textDim}}>Remaining</div></div>
+          <div style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center"}}><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{completedDays}</div><div style={{fontSize:11,color:T.textDim}}>Workouts Done</div></div>
+          <div style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center"}}><div style={{...MS,fontSize:22,color:T.text,fontWeight:600}}>{totalDays-completedDays}</div><div style={{fontSize:11,color:T.textDim}}>Remaining</div></div>
           <button onClick={onViewHistory} style={{background:T.card,border:"1px solid "+T.border,borderRadius:8,padding:"8px 14px",flex:1,textAlign:"center",cursor:"pointer",color:T.text}}><Icon name="trendingUp" size={20} style={{margin:"0 auto 2px",display:"block",opacity:0.8}}/><div style={{fontSize:11,color:T.textDim}}>Progress</div></button>
         </div>
       </div>
       <div style={{padding:"8px 16px 24px"}}>
         <div style={{...HS,fontSize:13,color:T.textDim,marginBottom:10}}>THIS WEEK</div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {PHASE1.days.map(day=>{
-            const isToday=day.dayNumber===todayDayNum;const wo=(cw-1)*7;const dd=new Date(start);dd.setDate(dd.getDate()+wo+day.dayNumber-1);const ds=dd.toISOString().split("T")[0];
-            const lk=ck.find(k=>k.startsWith(ds)&&logs[k]&&logs[k].dayId===day.id);const done=!!lk;
+          {weekDays.map(day=>{
+            const isToday = day.date === today;
+            const logKey = Object.keys(logs).find(k => k.startsWith(day.date) && logs[k] && logs[k].dayId === day.id);
+            const done = !!logKey;
+            const dayBlockColor = day.isDeload ? T.blue : day.isTaper ? T.purple : day.blockId === "mini" ? T.orange : T.accent;
             return(
-              <div key={day.id} onClick={()=>onStartDay(day)} style={{background:isToday?T.accentGlow:T.card,border:"1px solid "+(isToday?T.accent+"66":T.border),borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,transition:"all 0.15s"}}>
-                <div style={{width:42,height:42,borderRadius:10,background:done?T.greenGlow:(day.type==="outdoor"?T.green+"15":T.accent+"15"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  {done?<Icon name="check" size={20} color={T.green}/>:(day.type==="outdoor"?<Icon name="sun" size={20} color={T.green}/>:<Icon name="dumbbell" size={20} color={T.accent}/>)}
+              <div key={day.id} onClick={()=>onStartDay(day)} style={{background:isToday?dayBlockColor+"15":T.card,border:"1px solid "+(isToday?dayBlockColor+"66":T.border),borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,transition:"all 0.15s"}}>
+                <div style={{width:42,height:42,borderRadius:10,background:done?T.greenGlow:(day.type==="outdoor"?T.green+"15":dayBlockColor+"15"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  {done?<Icon name="check" size={20} color={T.green}/>:(day.type==="outdoor"?<Icon name="sun" size={20} color={T.green}/>:(day.blockId==="mini"?<Icon name="target" size={20} color={T.orange}/>:<Icon name="dumbbell" size={20} color={dayBlockColor}/>))}
                 </div>
                 <div style={{flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
                     <span style={{fontSize:15,fontWeight:600,color:T.text}}>{day.label}</span>
-                    {isToday&&<span style={{fontSize:10,background:T.accent,color:"#fff",padding:"1px 6px",borderRadius:4,fontWeight:600,...HS}}>TODAY</span>}
+                    {isToday&&<span style={{fontSize:10,background:dayBlockColor,color:"#fff",padding:"1px 6px",borderRadius:4,fontWeight:600,...HS}}>TODAY</span>}
                   </div>
-                  <div style={{fontSize:12,color:T.textDim}}>{day.weekday+" "+DOT+" Day "+day.dayNumber+" "+DOT+" "+(day.type==="outdoor"?"Outdoor":("Gym "+DOT+" "+day.exercises.length+" exercises"))}</div>
+                  <div style={{fontSize:12,color:T.textDim}}>{day.weekday+", "+day.date.slice(5)+" "+DOT+" "+(day.type==="outdoor"?"Outdoor":("Gym "+DOT+" "+day.exercises.length+" exercises"))}</div>
                 </div>
                 <Icon name="chevronRight" size={18} color={T.textMuted}/>
               </div>
@@ -524,8 +790,8 @@ function HomeScreen({onStartDay,onViewHistory,logs}){
 function App(){
   const[screen,setScreen]=useState("home");const[activeDay,setActiveDay]=useState(null);const[allLogs,setAllLogs]=useState(loadLogs());
   const startDay=(day)=>{setActiveDay(day);setScreen("workout");};
-  const finishWorkout=(logData)=>{const key=getTodayStr()+"_"+logData.dayId;const updated={...allLogs,[key]:logData};setAllLogs(updated);saveLogs(updated);setScreen("home");setActiveDay(null);};
-  if(screen==="workout"&&activeDay)return <ActiveWorkout day={activeDay} onFinish={finishWorkout} existingLog={allLogs[getTodayStr()+"_"+activeDay.id]} allLogs={allLogs}/>;
+  const finishWorkout=(logData)=>{const key=localDate()+"_"+logData.dayId;const updated={...allLogs,[key]:logData};setAllLogs(updated);saveLogs(updated);setScreen("home");setActiveDay(null);};
+  if(screen==="workout"&&activeDay)return <ActiveWorkout day={activeDay} onFinish={finishWorkout} existingLog={allLogs[localDate()+"_"+activeDay.id]} allLogs={allLogs}/>;
   if(screen==="history")return <HistoryScreen allLogs={allLogs} onBack={()=>setScreen("home")}/>;
   return <HomeScreen onStartDay={startDay} onViewHistory={()=>setScreen("history")} logs={allLogs}/>;
 }
